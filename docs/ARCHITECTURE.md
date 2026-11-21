@@ -215,6 +215,12 @@ adb shell dumpsys power  | grep -A2 "Wake Locks"      # → SCREEN_BRIGHT_WAKE_L
 | 分发 | `updates.json.gz`（几十 KB）；地址写在 `gradle.properties` 的 `tvhub.updateIndexUrl`，构建期注入 `BuildConfig.UPDATE_INDEX_URL`，**留空 = 功能关闭、不发任何请求** |
 | 客户端 | `UpdateIndex`：先读 `filesDir/updates/updates.json` 缓存（开机即可显示），首帧后 2.5s 再联网，带 `If-None-Match`，304 直接结束 |
 
+当前实例的索引地址（`releases/download/updates/` 是固定 tag，客户端只认这一个常量）：
+
+```
+https://github.com/harrisonxhere/tv-hub/releases/download/updates/updates.json.gz
+```
+
 **为什么用 REST 而不是 GraphQL**：GraphQL 按「节点数」计费，`releaseAssets(first: 40)`
 一个仓库就要 40 点，50 个一包 = 2100 点，5000 点/小时只够查 119 个仓库 —— 2923 个要跑 24 小时。
 REST 的 `releases/latest` 按请求数计费（5000/小时），一个仓库 1 次且一次带回全部 assets，
