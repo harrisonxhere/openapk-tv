@@ -1,0 +1,71 @@
+name: update-index
+
+# 两个节奏，查的不是同一批仓库：
+#   due 轮（每天）：所有「到期」的 —— 高频应用每天、低频应用 2/4/7 天一次
+#   hot 轮（每 6 小时）：只碰「刚发过版」的那几十个，确认有没有 hotfix
+# 为什么不都每天全量：2923 个仓库 × 1 次请求，占 REST 额度（5000/小时）的 58%，
+# 其中 7% 是一年以上没动过的。分层后稳态约 1900 次/天，省三分之一，
+# 而低频应用本来也不需要这么快知道。
+on:
+  schedule:
+    - cron: "0 3 * * *"    # 每日轮。UTC 3:00 = 北京 11:00
+    - cron: "30 */6 * * *" # 热层轮，错开半小时，避免和每日轮撞在同一分钟
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "due=到期的 / hot=刚发过版的 / all=全量（首次或修数据用）"
+        type: choice
+        options: [due, hot, all]
+        default: due
+  push:
+    paths:
+      - "tools/fetch_updates.py"
+      - ".github/workflows/updates.yml"
+
+permissions:
+  contents: write
+
+# 排队而不是取消：两轮撞在一起时，取消会把跑到一半的间隔状态丢掉
+concurrency:
+  group: update-index
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    env:
+      TIER: ${{ inputs.tier || (github.event.schedule == '30 */6 * * *' && 'hot' || 'due') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 抓取 latest release（tier=${{ env.TIER }}）
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/fetch_updates.py --tier "$TIER" --out data/updates
+
+      - name: 提交索引与调度状态（内容不变则跳过）
+        run: |
+          git config user.name "tvhub-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/updates data/updates-state.json
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "chore(updates): 刷新更新索引（$TIER）[skip ci]"
+          git push
+
+      # 固定 tag 的 release：下载地址永远是
+      # https://github.com/<owner>/<repo>/releases/download/updates/updates.json.gz
+      # 客户端只用这一个常量，不用管分支名，也不会被 force-push 影响
+      - name: 发布到 updates release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view updates >/dev/null 2>&1 \
+            || gh release create updates --title "update index" --notes "自动生成的更新索引，客户端只读这一个 release。"
+          gh release upload updates data/updates/updates.json data/updates/updates.json.gz --clobber

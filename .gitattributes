@@ -1,0 +1,28 @@
+# 默认：文本按 LF 存储、按 LF 检出。
+# 本机 core.autocrlf=true，没有这层约束时 gradlew / *.sh 会被转成 CRLF，
+# 在 Linux CI 上直接报 "bad interpreter: /bin/sh^M"。
+* text=auto eol=lf
+
+# shell 脚本必须 LF（含 Gradle wrapper）
+*.sh            text eol=lf
+gradlew         text eol=lf
+.github/**      text eol=lf
+
+# Windows 批处理必须 CRLF，否则 cmd.exe 解析出错
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# 二进制：禁止换行符转换与文本 diff
+*.jar           binary
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.webp          binary
+*.ttf           binary
+*.otf           binary
+*.jks           binary
+*.keystore      binary
+
+# 生成物/数据：避免 Git 把它当文本做行尾处理或统计到语言占比
+app/src/main/assets/catalog.json  -text
+data/*.json                       -text

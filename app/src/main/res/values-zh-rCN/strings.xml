@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_discover">发现</string>
+    <string name="tab_categories">分类</string>
+    <string name="tab_search">搜索</string>
+    <string name="tab_mine">我的应用</string>
+    <string name="tab_settings">设置</string>
+
+    <!-- DateTimeFormatter pattern：年月日为字面量，不能用单引号（Android 资源转义冲突） -->
+    <string name="fmt_date">yyyy年M月d日</string>
+    <string name="fmt_short_date">M月d日</string>
+    <string name="fmt_month_year">yyyy年M月</string>
+
+    <string name="abi_arm64">ARM 64 位</string>
+    <string name="abi_arm32">ARM 32 位</string>
+    <string name="abi_x86_64">x86 64 位</string>
+
+    <string name="accent_sage">鼠尾草绿</string>
+    <string name="accent_red">画廊红</string>
+    <string name="accent_ochre">赭黄</string>
+    <string name="accent_plum">梅紫</string>
+    <string name="accent_none">无</string>
+
+    <string name="theme_match">跟随电视</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+
+    <!-- 分类名由 Data.kt 的 roomNames 映射到这些键，覆盖 catalog 内全部 18 个分类 -->
+    <string name="room_launchers">桌面启动器</string>
+    <string name="room_screensavers">屏保</string>
+    <string name="room_vpn">VPN 与网络</string>
+    <string name="room_streaming">在线视频</string>
+    <string name="room_stores">应用商店</string>
+    <string name="room_games">游戏</string>
+    <string name="room_music">音乐</string>
+    <string name="room_video">视频播放器</string>
+    <string name="room_home">智能家居</string>
+    <string name="room_photos">相册</string>
+    <string name="room_reading">阅读</string>
+    <string name="room_learning">学习</string>
+    <string name="room_chat">聊天与社交</string>
+    <string name="room_ai">人工智能</string>
+    <string name="room_browsers">浏览器</string>
+    <string name="room_files">文件与下载</string>
+    <string name="room_tools">工具</string>
+    <string name="room_other">其它</string>
+
+    <!-- 12 个一级分类。键与 catalog.json 的 group 字段一致，显示名只放这里，加语言不用改数据 -->
+    <string name="group_video">影视</string>
+    <string name="group_photos">图片</string>
+    <string name="group_music">音乐</string>
+    <string name="group_games">游戏</string>
+    <string name="group_reading">阅读</string>
+    <string name="group_social">社交</string>
+    <string name="group_browser">浏览</string>
+    <string name="group_home">家居</string>
+    <string name="group_desktop">桌面</string>
+    <string name="group_stores">应用商店</string>
+    <string name="group_ai">AI 工具</string>
+    <string name="group_system">系统</string>
+    <string name="group_other">其它</string>
+    <!-- 房间页二级分类 chips 的第一个（不筛选） -->
+    <string name="sub_all">全部</string>
+
+    <string name="needs_android">需要 %1$s</string>
+    <string name="job_downloading">正在下载 %1$d%%</string>
+    <string name="job_checking">正在校验签名</string>
+    <string name="job_installing">正在安装</string>
+    <string name="action_install_size">安装 · %1$s</string>
+    <string name="action_update_size">更新 · %1$s</string>
+    <string name="action_update">更新</string>
+    <string name="action_open">打开</string>
+
+    <string name="err_allow_install">请先允许 TV Hub 安装应用，然后再次点击安装。</string>
+    <string name="err_generic">出了点问题，请重试。</string>
+    <string name="err_download_http">下载失败（HTTP %1$d），请重试。</string>
+    <string name="err_save">无法保存下载文件，请清理空间后重试。</string>
+    <string name="err_blocked">这台电视拦截了 Android 的安装界面。请重试，或在电脑上用 adb 安装这个 APK。</string>
+    <string name="err_conflict">已安装的版本由其他签名者签发。请先卸载，再从这里安装。</string>
+    <string name="err_storage">这台电视存储空间不足。</string>
+    <string name="err_incompatible">此安装包无法在这台电视上运行。</string>
+    <string name="held_key_changed">此文件的签名密钥与 TV Hub 为 %1$s 记录的不一致，已暂停更新等待确认。</string>
+    <string name="held_sibling">这台电视上的 %1$s 是 %2$s 构建版本。请先卸载，再安装此版本。</string>
+    <string name="held_other_build">这台电视上的 %1$s 来自其他人的构建版本，Android 不会用此文件更新它。</string>
+
+    <string name="by_maker">作者 %1$s</string>
+    <string name="by_maker_fork">作者 %1$s · 派生自 %2$s</string>
+    <string name="fork_line">由 %1$s 维护的分支，更新于 %2$s</string>
+    <string name="view_fork">查看分支</string>
+    <string name="fact_version">版本</string>
+    <string name="fact_licence">许可证</string>
+    <string name="fact_stars">星标</string>
+    <string name="licence_unknown">见仓库</string>
+    <string name="view_app">查看应用</string>
+    <string name="row_tv">为电视打造</string>
+    <string name="row_tv_sub">提供电视版封面的应用</string>
+    <string name="row_recent">最近更新</string>
+    <string name="row_recent_sub">GitHub 上的新版本</string>
+    <string name="shelf_more">查看更多</string>
+    <string name="row_starred">星标最多</string>
+    <string name="row_categories">分类</string>
+    <string name="row_categories_sub">按用途浏览</string>
+    <!-- 中文只有 other 一种复数规则 -->
+    <plurals name="apps">
+        <item quantity="other">%1$d 款应用</item>
+    </plurals>
+    <string name="categories_summary">%1$d 个分类，%2$s 款应用</string>
+    <string name="status_update_ready">有可用更新</string>
+    <string name="status_installed">已安装</string>
+
+    <string name="releases">版本记录</string>
+    <string name="latest_month">最新，%1$s</string>
+    <string name="archived_note">开发者已归档此项目，预计不再更新。</string>
+    <string name="uninstall">卸载</string>
+    <string name="prov_released">发布时间</string>
+    <string name="prov_download">下载大小</string>
+    <string name="prov_signing">签名密钥</string>
+    <string name="sig_unrecorded">尚未记录。Android 仍会按已安装版本校验更新。</string>
+    <string name="sig_checked">安装前会与开发者的密钥比对</string>
+    <string name="sig_mismatch">与开发者的密钥不一致，更新已暂停。</string>
+    <string name="sig_sibling">这台电视装的是 %1$s 构建版本，卸载后才能切换。</string>
+    <string name="sig_matches">与开发者的密钥一致</string>
+    <string name="file_picked_any">已选择适配所有电视的安装包</string>
+    <string name="file_picked_abi">已选择适配本电视的安装包（%1$s）</string>
+    <string name="installed_version">已安装版本 %1$s</string>
+    <string name="needs_space">需要 %1$s，这台电视可用 %2$s。</string>
+
+    <string name="search_hint_editing">输入应用名称或用途</string>
+    <string name="search_hint">搜索应用</string>
+    <string name="search_press_ok">按确认键输入</string>
+    <string name="search_ok_edit">按确认键修改</string>
+    <string name="search_try">试试</string>
+    <string name="search_clear">清除</string>
+    <string name="search_none">没有匹配“%1$s”的应用</string>
+    <plurals name="search_results">
+        <item quantity="other">“%2$s”共 %1$d 个结果</item>
+    </plurals>
+    <string name="search_tip">换个短一点的词，或试试应用用途，比如“视频播放器”。</string>
+    <string name="search_matches">匹配：</string>
+
+    <string name="mine_title">我的应用</string>
+    <plurals name="updates_ready">
+        <item quantity="other">%1$d 个更新可用</item>
+    </plurals>
+    <string name="held_count">%1$d 个已暂停待确认</string>
+    <string name="from_shelf_count">%1$d 个来自 TV Hub</string>
+    <plurals name="other_apps">
+        <item quantity="other">这台电视上还有 %1$d 个其他应用</item>
+    </plurals>
+    <string name="update_all">全部更新</string>
+    <string name="section_from_shelf">来自 TV Hub</string>
+    <string name="mine_empty">从 TV Hub 安装的应用会显示在这里，并提示更新。</string>
+    <string name="find_app">去找应用</string>
+    <string name="held_sub">%1$s · 签名密钥不同</string>
+    <string name="update_held">更新已暂停</string>
+    <string name="review">查看</string>
+    <string name="up_to_date">已是最新</string>
+    <string name="details">详情</string>
+    <string name="section_other">这台电视上的其他应用</string>
+    <string name="not_in_list">未收录在 TV Hub 目录中</string>
+
+    <string name="set_accent">强调色</string>
+    <string name="set_accent_help">影响焦点框、当前按钮和已安装应用旁的圆点。按确认键切换下一种。</string>
+    <string name="set_appearance">外观</string>
+    <string name="set_appearance_help">浅色把书架挂在白墙上，深色挂在炭灰墙面上，适合夜晚；跟随电视则使用系统深色设置。按确认键切换。</string>
+    <string name="set_install">允许 TV Hub 安装应用</string>
+    <string name="allowed">已允许</string>
+    <string name="not_allowed">尚未允许</string>
+    <string name="set_install_help">Android 只需授权一次。之后 TV Hub 就能安装和更新应用，每次安装仍会单独确认。</string>
+    <string name="set_apk">安装包类型</string>
+    <string name="apk_auto">自动 · %1$s</string>
+    <string name="set_apk_help">很多应用会为不同芯片提供不同安装包，TV Hub 会挑选适配这台电视的版本。本机支持：%1$s。</string>
+    <string name="set_key">应用签名密钥变更时</string>
+    <string name="set_key_value">暂停更新</string>
+    <string name="set_key_help">每个版本都由开发者签名。若新文件由他人签名，TV Hub 会保留当前版本，不予安装。</string>
+    <string name="set_catalog">应用目录</string>
+    <string name="catalog_value">%1$s 款应用 · %2$s</string>
+    <string name="catalog_help">收录 GitHub 上所有提供 APK、且近三年内发布过版本的 Android TV 应用。核对日期 %1$s。此版本将目录内置在应用中。</string>
+    <string name="set_stars">隐藏星标数低于</string>
+    <string name="set_stars_help">让太新或太少人用的应用不出现在「发现」中。当前隐藏 %1$s 款。搜索仍可按准确名称找到它们。</string>
+    <string name="set_streams">隐藏 IPTV 与串流应用</string>
+    <string name="streams_on">已开启 · 隐藏 %1$s 款</string>
+    <string name="streams_off">已关闭</string>
+    <string name="set_streams_help">隐藏 IPTV 播放器、直播频道应用，以及 debrid、torrent、Stremio 类客户端。它们虽是开源项目，但播放内容由你自行提供。按确认键切换。</string>
+    <string name="set_cache">下载缓存</string>
+    <string name="cache_value">%1$s · 清除</string>
+    <string name="set_cache_help">已下载的 APK 会保存在这里，重装时无需再次下载。按确认键清除。</string>
+    <string name="set_about">关于</string>
+    <string name="about_value">TV Hub %1$s</string>
+    <string name="about_help">本应用是基于 Open Shelf（wingedpanther）的非官方衍生版，2026-11-14 首次修改，依 GPL-3.0 开源，完整声明与源码见项目仓库。应用名称、图片和安装包来自各项目的 GitHub 仓库。</string>
+    <string name="settings_footer">版本 %1$s · %2$s 款应用</string>
+
+    <!-- 国内下载源（新增键，英文基准见 values/strings.xml） -->
+    <string name="set_mirror">下载源</string>
+    <string name="mirror_auto">国内镜像优先</string>
+    <string name="mirror_direct">直连 GitHub</string>
+    <string name="set_mirror_help">选择封面图片与安装包的下载来源。开启时先尝试国内镜像，失败自动回退到 GitHub 原链；公共镜像下载大型安装包可能较慢。无论走哪条链路，APK 签名校验都不会跳过。</string>
+    <string name="err_download_all">所有下载源均失败，请检查网络后重试。</string>
+
+    <!-- v8 玻璃浮层设计 -->
+    <string name="hero_kick">编辑精选 · 本周</string>
+    <string name="hero_install">安装</string>
+    <string name="sec_hot">本周热门</string>
+    <string name="sec_pick">精选</string>
+    <string name="sec_sub">%1$d 款 · %2$s</string>
+    <string name="sec_sub_short">按星标 · 全站 %1$s 款</string>
+    <string name="sec_sort_all">按%1$s · 目录共 %2$s 款</string>
+    <string name="sort_stars">星标</string>
+    <string name="sort_date">更新时间</string>
+    <string name="chip_read">阅读</string>
+    <string name="chip_music">音乐</string>
+    <string name="hint_enter_room">OK 进入分类</string>
+    <string name="cats_sub">按分类浏览 · 目录共 %1$s 款</string>
+    <string name="tile_count">目录 %1$d 款 · 精选 %2$d</string>
+    <string name="room_sub">精选 %1$d 款 · 目录 %2$d 款</string>
+    <string name="group_sub">%1$d 款 · 全库 %2$d 款</string>
+    <string name="room_empty">该房间暂无演示数据</string>
+    <string name="mine_sub">%1$d 款已安装 · %2$d 项可更新</string>
+    <string name="badge_update">更新</string>
+    <string name="badge_latest">最新</string>
+    <string name="storage_local">本地存储</string>
+    <string name="storage_apps">应用 %1$s</string>
+    <string name="storage_cache">缓存 %1$s</string>
+    <string name="storage_free">可用 %1$s</string>
+    <string name="update_all_n">更新全部 · %1$d 款</string>
+    <string name="queue_title">下载队列</string>
+    <string name="queue_sub">%1$d 个任务进行中</string>
+    <string name="fav_title">收藏</string>
+    <string name="fav_sub">按房间归类的私人清单</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_sub">外观 / 更新 / 存储</string>
+    <string name="search_ph">搜索应用 · 作者 · 房间</string>
+    <string name="recent_search">最近搜索 · %1$s</string>
+    <string name="search_kb_tip">用遥控器方向键逐个选字母，按 OK 输入；接上蓝牙键盘可以直接打字。\n搜索范围覆盖应用名、作者与房间名。</string>
+    <string name="key_space">空格</string>
+    <string name="key_del">删 除</string>
+    <string name="detail_kick">应用详情</string>
+    <string name="detail_history">更新脉络</string>
+    <string name="detail_now">最新 · %1$d 天前</string>
+    <string name="detail_total">共 %1$d 个版本</string>
+    <string name="detail_cadence_days">约每 %1$d 天一版 · 活跃</string>
+    <string name="detail_cadence_months">约每 %1$d 个月一版</string>
+    <string name="detail_single">单次发布</string>
+    <string name="detail_signed_ok">签名校验通过</string>
+    <string name="detail_signed_no">社区自构建</string>
+    <string name="detail_source">来源 GitHub Release · 安装前核对证书指纹</string>
+    <string name="detail_more">也可以看看</string>
+    <string name="detail_same_room">同房间 · %1$s</string>
+    <string name="detail_maintained">持续维护</string>
+    <string name="detail_archived">已归档</string>
+    <string name="detail_count">%1$s 款</string>
+    <string name="tag_signed">官方签名</string>
+    <string name="tag_unsigned">未签名</string>
+    <string name="tag_universal">通用架构</string>
+    <string name="meta_size">体积</string>
+    <string name="meta_updated">更新</string>
+    <string name="back">返回</string>
+    <string name="set_theme">外观主题</string>
+    <string name="set_theme_sub">只影响这台电视</string>
+    <string name="seg_dark">深色</string>
+    <string name="seg_light">浅色</string>
+    <string name="set_language">界面语言</string>
+    <string name="set_language_sub">跟随系统，或固定一种</string>
+    <string name="lang_system">跟随系统</string>
+    <string name="lang_picker_sub">%1$d 个选项 · 按 OK 切换，返回键取消</string>
+    <string name="set_auto">自动更新</string>
+    <string name="set_auto_sub">仅 Wi-Fi 下自动升级已安装应用</string>
+    <string name="set_wifi">仅 Wi-Fi 下载</string>
+    <string name="set_wifi_sub">移动热点下暂停大文件</string>
+    <string name="set_boot">开机自动启动</string>
+    <string name="set_boot_sub">电视开机后直接进入 TV Hub</string>
+    <string name="set_voice">语音搜索</string>
+    <string name="set_voice_sub">按住遥控器语音键直接说话</string>
+    <string name="set_cache_sub">已缓存安装包 %1$s</string>
+    <string name="set_check">检查更新</string>
+    <string name="set_check_sub">当前 v%1$s · 今天已检查</string>
+    <string name="set_motion">界面动效</string>
+    <string name="set_motion_sub">页面切换与焦点缩放动画</string>
+    <string name="set_about_sub">开源应用目录 · %1$s 款</string>
+    <string name="set_reset">恢复默认设置</string>
+    <string name="set_reset_sub">不影响已安装应用</string>
+    <string name="toast_sort_stars">已按星标排序</string>
+    <string name="toast_sort_date">已按更新时间排序</string>
+    <string name="toast_filter">筛选面板 · 下一版</string>
+    <string name="toast_updated_all">已加入 %1$d 个更新任务</string>
+    <string name="toast_cleared">已清理 %1$s 缓存</string>
+    <string name="toast_checked">已是最新版本</string>
+    <string name="toast_about">TV Hub %1$s · 开源应用目录</string>
+    <string name="toast_reset">已恢复默认设置</string>
+    <string name="toast_lang">界面语言 · %1$s</string>
+    <string name="toast_queue">下载队列 · 演示</string>
+    <string name="toast_fav">收藏 · 演示</string>
+
+    <string-array name="hot_words">
+        <item>clash</item>
+        <item>播放器</item>
+        <item>YouTube</item>
+        <item>下载</item>
+        <item>阅读</item>
+        <item>开源</item>
+    </string-array>
+    <string-array name="recent_times">
+        <item>2 分钟前</item>
+        <item>昨天</item>
+        <item>3 天前</item>
+        <item>上周</item>
+        <item>更早</item>
+    </string-array>
+</resources>

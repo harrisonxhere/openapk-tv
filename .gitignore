@@ -1,0 +1,17 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+keystore.properties
+*.jks
+*.keystore
+*.apk
+.DS_Store
+.idea/
+*.iml
+tools/*
+!tools/fetch_updates.py
+!tools/reclassify.py
+.workbuddy/
+__pycache__/
+*.pyc
