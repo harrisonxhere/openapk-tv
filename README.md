@@ -9,6 +9,16 @@ An app store for Android TV that lists open-source TV apps from GitHub and insta
 
 Google Play on TV only carries apps that publish there. Plenty of good TV apps only live on GitHub, where installing one means a phone, a download link and a guess at which APK fits your box. TV Hub does that part for you.
 
+## 下载 / Download
+
+最新版本：[**v1.0.0**](https://github.com/harrisonxhere/tv-hub/releases/latest) — 3.2 MB，最低 Android 9（API 28），支持 armeabi-v7a / arm64-v8a / x86。
+
+```bash
+adb install -r tv-hub-1.0.0.apk
+```
+
+包里不带 `testOnly`，电视上用 U 盘或文件管理器直接装即可；release 页附 SHA256 供校验。
+
 ## 项目结构 / Project layout
 
 代码、素材与决策记录都在这个仓库里，克隆下来就是完整的。
