@@ -377,7 +377,10 @@ def main():
         picked = picked[:HOT_LIMIT]
 
     if not picked:
-        print("无需检查，退出")
+        print("本轮无到期应用")
+        # 索引主体不动，但 self 仍要刷新：自更新不该被调度节流拖住
+        if args.self and not args.sample:
+            refresh_self(args, token)
         return
 
     # 2. 抓
@@ -449,25 +452,9 @@ def main():
 
     os.makedirs(args.out, exist_ok=True)
 
-    # 自身也要进索引：客户端只读这一个文件，自更新就不必再打一次 api.github.com。
+    # 自身也要进索引：客户端只读这一个文件，自更新就不用再打一次 api.github.com。
     # 抽样自检时跳过，免得把 --sample 的结果当成真实发布状态。
-    self_rel = None
-    if args.self and not args.sample:
-        try:
-            rel = rest_one(args.self, token)
-            apks = (rel or {}).get("apks") or []
-            if rel and apks:
-                # 自己的包只有一个，取体积最大的（体积 = 不含 ABI 拆分的全量包）
-                best = max(apks, key=lambda x: x.get("size") or 0)
-                self_rel = {"repo": args.self, "tag": rel["tag"], "date": rel["date"], "apk": best}
-                print("\nself: %s → %s (%s, %.1f MB)" % (
-                    args.self, rel["tag"], best["name"], (best.get("size") or 0) / 1048576))
-            elif rel:
-                print("\n! self: %s 有 release 但没有 .apk 附件" % args.self, file=sys.stderr)
-            else:
-                print("\n! self: %s 还没有发布过 release" % args.self, file=sys.stderr)
-        except Exception as e:
-            print("\n! self: 抓取失败（索引仍会生成，客户端只是暂时看不到自更新）：%s" % e, file=sys.stderr)
+    self_rel = fetch_self(args.self, token) if (args.self and not args.sample) else None
 
     doc = {
         "schema": 1,
@@ -478,17 +465,70 @@ def main():
     }
     if self_rel:
         doc["self"] = self_rel
+    write_index(args.out, doc)
+    if not args.sample:
+        save_state(new_state)
+
+
+def fetch_self(repo, token):
+    """抓自身仓库的最新 Release（供客户端自更新）。任何失败都只返回 None，
+    不影响索引主体 —— 自更新是锦上添花，不能拖垮每日抓取。"""
+    if not repo:
+        return None
+    try:
+        rel = rest_one(repo, token)
+    except Exception as e:
+        print("  ! self: 抓取 %s 失败（客户端这轮看不到自更新）：%s" % (repo, e), file=sys.stderr)
+        return None
+    if not rel:
+        print("  ! self: %s 还没有发布过 release" % repo, file=sys.stderr)
+        return None
+    apks = rel.get("apks") or []
+    if not apks:
+        print("  ! self: %s 的 release 没有 .apk 附件" % repo, file=sys.stderr)
+        return None
+    # 自己的包只有一个，取体积最大的（体积 = 不含 ABI 拆分的全量包）
+    best = max(apks, key=lambda x: x.get("size") or 0)
+    print("\nself: %s → %s (%s, %.1f MB)" % (
+        repo, rel["tag"], best["name"], (best.get("size") or 0) / 1048576))
+    return {"repo": repo, "tag": rel["tag"], "date": rel["date"], "apk": best}
+
+
+def write_index(out, doc):
+    os.makedirs(out, exist_ok=True)
     raw = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).encode()
-    plain = os.path.join(args.out, "updates.json")
+    plain = os.path.join(out, "updates.json")
     gz = plain + ".gz"
     with open(plain, "wb") as f:
         f.write(raw)
     with open(gz, "wb") as f:  # mtime=0：内容不变时 gz 字节也稳定，diff 才有意义
         with gzip.GzipFile(fileobj=f, mode="wb", mtime=0) as g:
             g.write(raw)
-    if not args.sample:
-        save_state(new_state)
     print("\n写出 %s (%.1f KB) 与 .gz (%.1f KB)" % (plain, len(raw) / 1024, os.path.getsize(gz) / 1024))
+
+
+def refresh_self(args, token):
+    """本轮没有到期应用时，只把 self 段刷一遍。
+    self 和调度无关：如果跟着 due 轮一起被跳过，客户端要等到「某个应用到期」
+    才能看到 TV Hub 的新版本，可能拖上一整天。"""
+    plain = os.path.join(args.out, "updates.json")
+    if not os.path.exists(plain):
+        return
+    try:
+        with open(plain, encoding="utf-8") as f:
+            doc = json.load(f)
+    except Exception as e:
+        print("  ! 现有索引读不出来，跳过 self 刷新：%s" % e, file=sys.stderr)
+        return
+    rel = fetch_self(args.self, token)
+    if rel is None:
+        return
+    if doc.get("self") == rel:
+        print("  self 无变化：%s" % rel["tag"])
+        return
+    doc["self"] = rel
+    doc["generated"] = now_ts().strftime("%Y-%m-%dT%H:%M:%SZ")
+    write_index(args.out, doc)
 
 
 def push(app, rel, entries, stats):
