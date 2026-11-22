@@ -317,6 +317,8 @@ def main():
     ap.add_argument("--anon", action="store_true", help="匿名调用（仅抽样自检用，60 次/小时）")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--limit", type=int, default=0, help="索引最多保留多少条（保护性上限）")
+    ap.add_argument("--self", default=os.environ.get("GITHUB_REPOSITORY", ""),
+                    help="自身仓库 owner/repo，写进索引供客户端自更新；默认取 GITHUB_REPOSITORY")
     ap.add_argument("--token", default=os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or "")
     args = ap.parse_args()
 
@@ -446,6 +448,27 @@ def main():
         return
 
     os.makedirs(args.out, exist_ok=True)
+
+    # 自身也要进索引：客户端只读这一个文件，自更新就不必再打一次 api.github.com。
+    # 抽样自检时跳过，免得把 --sample 的结果当成真实发布状态。
+    self_rel = None
+    if args.self and not args.sample:
+        try:
+            rel = rest_one(args.self, token)
+            apks = (rel or {}).get("apks") or []
+            if rel and apks:
+                # 自己的包只有一个，取体积最大的（体积 = 不含 ABI 拆分的全量包）
+                best = max(apks, key=lambda x: x.get("size") or 0)
+                self_rel = {"repo": args.self, "tag": rel["tag"], "date": rel["date"], "apk": best}
+                print("\nself: %s → %s (%s, %.1f MB)" % (
+                    args.self, rel["tag"], best["name"], (best.get("size") or 0) / 1048576))
+            elif rel:
+                print("\n! self: %s 有 release 但没有 .apk 附件" % args.self, file=sys.stderr)
+            else:
+                print("\n! self: %s 还没有发布过 release" % args.self, file=sys.stderr)
+        except Exception as e:
+            print("\n! self: 抓取失败（索引仍会生成，客户端只是暂时看不到自更新）：%s" % e, file=sys.stderr)
+
     doc = {
         "schema": 1,
         "generated": checked_ts,
@@ -453,6 +476,8 @@ def main():
         "stats": stats,
         "apps": entries,
     }
+    if self_rel:
+        doc["self"] = self_rel
     raw = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).encode()
     plain = os.path.join(args.out, "updates.json")
     gz = plain + ".gz"

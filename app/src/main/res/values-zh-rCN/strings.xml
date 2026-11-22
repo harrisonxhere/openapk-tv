@@ -274,6 +274,12 @@
     <string name="set_cache_sub">已缓存安装包 %1$s</string>
     <string name="set_check">检查更新</string>
     <string name="set_check_sub">当前 v%1$s · 今天已检查</string>
+    <string name="set_check_new">发现新版本 %1$s</string>
+    <string name="set_check_new_sub">点一下更新 · %1$s</string>
+    <string name="set_check_dl">下载中 %1$d%%</string>
+    <string name="set_check_install">正在安装…</string>
+    <string name="set_check_failed">更新失败 · %1$s</string>
+    <string name="toast_uptodate">已是最新版本（v%1$s）</string>
     <string name="set_motion">界面动效</string>
     <string name="set_motion_sub">页面切换与焦点缩放动画</string>
     <string name="set_about_sub">开源应用目录 · %1$s 款</string>

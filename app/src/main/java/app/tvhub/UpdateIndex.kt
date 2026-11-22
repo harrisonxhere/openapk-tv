@@ -31,8 +31,15 @@ import java.util.zip.GZIPInputStream
 object UpdateIndex {
     data class Latest(val tag: String, val date: String, val apks: List<Apk>)
 
+    /** 索引里的 `self` 段：TV Hub 自己的最新 Release。apk 可能为空（发布时忘了传附件） */
+    data class SelfRelease(val tag: String, val date: String, val apk: Apk?)
+
     /** id → 最新版本。只包含「和内置 catalog 版本不同」的条目，没有条 = 已是最新 */
     var latest by mutableStateOf<Map<String, Latest>>(emptyMap())
+        private set
+
+    /** 自己的最新版；null = 索引没带 self 段（旧格式 / 抓取失败） */
+    var self by mutableStateOf<SelfRelease?>(null)
         private set
 
     /** 每次同步成功 +1。UI 的 remember 以它为 key，索引到了自动重算「可更新」 */
@@ -60,11 +67,14 @@ object UpdateIndex {
     suspend fun loadCache() {
         if (!enabled || !dataFile.exists()) return
         withContext(Dispatchers.IO) {
-            runCatching { parse(dataFile.readBytes()) }.getOrNull()?.let {
-                latest = it
-                epoch++
-            }
+            runCatching { parse(dataFile.readBytes()) }.getOrNull()?.let { apply(it) }
         }
+    }
+
+    private fun apply(p: Parsed) {
+        latest = p.apps
+        self = p.self
+        epoch++
     }
 
     /**
@@ -101,9 +111,8 @@ object UpdateIndex {
                 dataFile.writeBytes(json)
                 conn.getHeaderField("ETag")?.trim()?.takeIf { it.isNotEmpty() }
                     ?.let { etagFile.writeText(it) }
-                latest = parsed
+                apply(parsed)
                 checkedAt = System.currentTimeMillis()
-                epoch++
                 return
             } catch (_: Exception) {
                 // 换下一个候选（镜像 / 原链）
@@ -113,28 +122,52 @@ object UpdateIndex {
         }
     }
 
-    private fun parse(bytes: ByteArray): Map<String, Latest> {
+    private class Parsed(val apps: Map<String, Latest>, val self: SelfRelease?)
+
+    private fun parse(bytes: ByteArray): Parsed {
         val root = JSONObject(String(bytes, Charsets.UTF_8))
-        val apps = root.optJSONObject("apps") ?: return emptyMap()
-        val out = HashMap<String, Latest>(apps.length())
-        val keys = apps.keys()
-        while (keys.hasNext()) {
-            val id = keys.next()
-            val o = apps.optJSONObject(id) ?: continue
-            val tag = o.optString("tag").trim()
-            if (tag.isEmpty()) continue
-            val arr = o.optJSONArray("apks")
-            val apks = buildList {
-                if (arr != null) for (i in 0 until arr.length()) {
-                    val a = arr.optJSONObject(i) ?: continue
-                    val u = a.optString("url")
-                    if (u.isBlank()) continue
-                    add(Apk(a.optString("name"), a.optString("abi"), u, a.optLong("size")))
+        val apps = root.optJSONObject("apps")
+        val out = HashMap<String, Latest>(apps?.length() ?: 0)
+        if (apps != null) {
+            val keys = apps.keys()
+            while (keys.hasNext()) {
+                val id = keys.next()
+                val o = apps.optJSONObject(id) ?: continue
+                val tag = o.optString("tag").trim()
+                if (tag.isEmpty()) continue
+                val arr = o.optJSONArray("apks")
+                val apks = buildList {
+                    if (arr != null) for (i in 0 until arr.length()) {
+                        val a = arr.optJSONObject(i) ?: continue
+                        val u = a.optString("url")
+                        if (u.isBlank()) continue
+                        add(Apk(a.optString("name"), a.optString("abi"), u, a.optLong("size")))
+                    }
                 }
+                out[id] = Latest(tag, o.optString("date"), apks)
             }
-            out[id] = Latest(tag, o.optString("date"), apks)
         }
-        return out
+        return Parsed(out, parseSelf(root))
+    }
+
+    /** `self` 段存的是远端最新版（可能就等于本机这版），要不要升级看 [selfNewer] */
+    private fun parseSelf(root: JSONObject): SelfRelease? {
+        val o = root.optJSONObject("self") ?: return null
+        val tag = o.optString("tag").trim()
+        if (tag.isEmpty()) return null
+        val a = o.optJSONObject("apk")
+        val apk = a?.let {
+            val u = it.optString("url")
+            if (u.isBlank()) null
+            else Apk(it.optString("name"), it.optString("abi"), u, it.optLong("size"))
+        }
+        return SelfRelease(tag, o.optString("date"), apk)
+    }
+
+    /** TV Hub 自己有没有新版：按 versionName 的数字段比（发版必须同时改 versionName） */
+    fun selfNewer(): Boolean {
+        val s = self ?: return false
+        return newer(s.tag, BuildConfig.VERSION_NAME)
     }
 
     /** 这个应用有没有比内置版本更新的 Release */

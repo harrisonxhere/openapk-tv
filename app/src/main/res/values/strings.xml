@@ -275,6 +275,12 @@
     <string name="set_cache_sub">%1$s of APKs cached</string>
     <string name="set_check">Check for updates</string>
     <string name="set_check_sub">Version %1$s · checked today</string>
+    <string name="set_check_new">Version %1$s available</string>
+    <string name="set_check_new_sub">Tap to update · %1$s</string>
+    <string name="set_check_dl">Downloading %1$d%%</string>
+    <string name="set_check_install">Installing…</string>
+    <string name="set_check_failed">Update failed · %1$s</string>
+    <string name="toast_uptodate">Already on the latest version (v%1$s)</string>
     <string name="set_motion">Motion</string>
     <string name="set_motion_sub">Page and focus transitions</string>
     <string name="set_about_sub">Open-source catalogue · %1$s apps</string>

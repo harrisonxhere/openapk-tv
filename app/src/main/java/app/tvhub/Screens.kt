@@ -2503,12 +2503,33 @@ private fun BoxScope.SettingsScreen(toast: (String) -> Unit, onBack: () -> Unit,
                 control = { Chev() },
                 onClick = { Device.clearCache(ctx); cacheTick++; toast(str(R.string.toast_cleared, Fmt.mb(cache))) },
             )
+            /* 自更新：索引里的 self 段就是 TV Hub 自己的最新 Release。
+               进度直接读 Installer.jobs（SnapshotStateMap，写入即触发重组），不需要另立状态。 */
+            val selfRel = UpdateIndex.self
+            val selfHasNew = selfRel != null && UpdateIndex.selfNewer()
+            val selfJob = Installer.jobs[Installer.SELF_ID]
             SetRow(
-                title = str(R.string.set_check),
-                sub = str(R.string.set_check_sub, version),
+                title = when {
+                    selfHasNew -> str(R.string.set_check_new, selfRel.tag)
+                    else -> str(R.string.set_check)
+                },
+                sub = when {
+                    selfJob is Job.Downloading -> str(R.string.set_check_dl, (selfJob.fraction * 100).toInt())
+                    selfJob == Job.Installing -> str(R.string.set_check_install)
+                    selfJob is Job.Failed -> str(R.string.set_check_failed, selfJob.message)
+                    selfHasNew -> str(R.string.set_check_new_sub, Fmt.mb(selfRel.apk?.size ?: 0L))
+                    else -> str(R.string.set_check_sub, version)
+                },
                 modifier = Modifier.weight(1f),
                 control = { Chev() },
-                onClick = { toast(str(R.string.toast_checked)) },
+                onClick = {
+                    val apk = selfRel?.apk
+                    when {
+                        selfHasNew && apk != null -> Installer.startSelfUpdate(ctx, apk)
+                        selfHasNew -> toast(str(R.string.err_generic))
+                        else -> toast(str(R.string.toast_uptodate, version))
+                    }
+                },
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {

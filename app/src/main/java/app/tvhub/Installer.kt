@@ -34,6 +34,9 @@ sealed interface Job {
 }
 
 object Installer {
+    /** 自更新用的任务 id；和 catalog 的 `owner-repo` 形式不会撞 */
+    const val SELF_ID = "__self__"
+
     val jobs = mutableStateMapOf<String, Job>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -88,12 +91,42 @@ object Installer {
                 }
                 put(app.id, Job.Installing)
                 try {
-                    withContext(Dispatchers.IO) { commit(appCtx, app, file) }
+                    withContext(Dispatchers.IO) { commit(appCtx, app.pkg, app.id, file) }
                 } catch (e: Exception) {
                     if (!handOff(appCtx, app.id, file)) throw e
                 }
             } catch (e: Exception) {
                 put(app.id, Job.Failed(e.message ?: str(R.string.err_generic)))
+            }
+        }
+    }
+
+    /**
+     * 更新 TV Hub 自己。和目录应用走同一条下载 + PackageInstaller 链路，
+     * 但**不做** certSha256 比对：Android 本身就会拒绝签名不一致的覆盖安装，
+     * 这里再挡一次，反而会在「将来换正式签名」时把用户卡在装不上的状态。
+     */
+    fun startSelfUpdate(ctx: Context, apk: Apk) {
+        val appCtx = ctx.applicationContext
+        if (busy(SELF_ID)) return
+        if (!canInstall(appCtx)) {
+            put(SELF_ID, Job.Failed(str(R.string.err_allow_install)))
+            openInstallPermission(ctx)
+            return
+        }
+        val file = File(Device.cacheDir(appCtx), "tvhub-${apk.name}")
+        put(SELF_ID, Job.Downloading(0, apk.size))
+        scope.launch {
+            try {
+                download(appCtx, apk, file) { d, t -> put(SELF_ID, Job.Downloading(d, t)) }
+                put(SELF_ID, Job.Installing)
+                try {
+                    withContext(Dispatchers.IO) { commit(appCtx, appCtx.packageName, SELF_ID, file) }
+                } catch (e: Exception) {
+                    if (!handOff(appCtx, SELF_ID, file)) throw e
+                }
+            } catch (e: Exception) {
+                put(SELF_ID, Job.Failed(e.message ?: str(R.string.err_generic)))
             }
         }
     }
@@ -169,10 +202,10 @@ object Installer {
         return null
     }
 
-    private fun commit(ctx: Context, app: App, file: File) {
+    private fun commit(ctx: Context, pkg: String, id: String, file: File) {
         val pi = ctx.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
-            setAppPackageName(app.pkg)
+            setAppPackageName(pkg)
             setSize(file.length())
         }
         val sessionId = pi.createSession(params)
@@ -181,7 +214,7 @@ object Installer {
                 file.inputStream().use { it.copyTo(out) }
                 session.fsync(out)
             }
-            val intent = Intent(ctx, InstallResultReceiver::class.java).putExtra("appId", app.id).putExtra("apk", file.path)
+            val intent = Intent(ctx, InstallResultReceiver::class.java).putExtra("appId", id).putExtra("apk", file.path)
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0)
             session.commit(PendingIntent.getBroadcast(ctx, sessionId, intent, flags).intentSender)
         }
