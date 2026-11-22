@@ -207,6 +207,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
 15. **`self` 段不跟着应用调度走**：`fetch_updates.py` 在「无到期应用」时会单独走 `refresh_self()`。如果把它塞回主流程的 `if not picked: return` 后面，自更新就要等某个应用到期才生效（踩过）。
+16. **改了 App/AppArt/Apk/Release 字段必须 BinCache.FORMAT +1**：二进制缓存格式升级时，必须把 `BinCache.FORMAT` 常量加 1，否则已缓存的旧格式文件会被误读，导致数据错乱或崩溃。
 
 ---
 

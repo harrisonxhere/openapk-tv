@@ -371,3 +371,51 @@ LaunchedEffect(handoff.pending, tab, room, detail) {
 
 **新增依赖前先想清楚**：这个项目的卖点是「装在 32 位 Android 9 电视盒上也能跑、国内网络能下载」，
 每加一个库都要多考虑镜像可达性与启动耗时。
+
+
+
+## 9. 目录加载与缓存优化
+
+### 9.1 冷启动性能问题
+原方案直接读取 3.3MB 的 catalog.json 为字符串，解析为 JSONObject 树，内存峰值高，首次冷启动需约 20 秒。
+
+### 9.2 流式解析优化
+```kotlin
+suspend fun load(ctx: Context) {
+    // 1. 先尝试二进制缓存
+    val cached = BinCache.read(ctx, cacheKey(ctx))
+    if (cached != null) { /* 直接使用 */ return }
+    
+    // 2. 流式解析 JSON
+    val counting = CountingStream(ctx.assets.open("catalog.json"))
+    JsonReader(InputStreamReader(counting)).use { r ->
+        while (r.hasNext()) {
+            out += readApp(r)  // 逐条解析
+            if (out.size % 100 == 0) {
+                progress = counting.count.toFloat() / total  // 更新进度条
+            }
+        }
+    }
+    // 3. 后台写入缓存
+    launch(Dispatchers.IO) { BinCache.write(ctx, key, generated, parsed) }
+}
+```
+
+### 9.3 二进制缓存格式
+```
+文件格式:
++----------+--------+-------------+--------+-----------------+
+| 魔数TVHB | 缓存键 | generated   | 条数N  | App1 | App2 | ... |
++----------+--------+-------------+--------+-----------------+
+
+缓存键 = "v${FORMAT}|${lastUpdateTime}|${versionCode}|${catalog.json大小}"
+```
+
+### 9.4 优化效果
+1. **首次启动**（解析+写缓存）：仍需完整解析，但内存使用降低约 2/3
+2. **二次启动**（读缓存）：秒开（约 100-300ms）
+3. **字段兼容性**：修改 App/AppArt/Apk/Release 任一字段，必须将 `BinCache.FORMAT` +1
+
+### 9.5 索引优化
+- `idIndex` / `repoIndex` / `forkIndex`: O(1) 查找，重复键保留第一条
+- `progress`: 按字节读取进度，Splash 显示 220×3dp 进度条

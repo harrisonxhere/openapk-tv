@@ -366,10 +366,17 @@ fun TvHub() {
 
 @Composable
 private fun Splash(modifier: Modifier = Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Ico(Icons.Logo, 30.dp, C.Fg)
-        Spacer(Modifier.width(10.dp))
-        T("TV Hub", 17.sp, weight = FontWeight.Bold, tight = true)
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Ico(Icons.Logo, 30.dp, C.Fg)
+            Spacer(Modifier.width(10.dp))
+            T("TV Hub", 17.sp, weight = FontWeight.Bold, tight = true)
+        }
+        Spacer(Modifier.height(18.dp))
+        /* 进度条：按已读字节估算，低端电视冷启动时让用户知道没卡死 */
+        Box(Modifier.width(220.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(C.Fg.copy(alpha = 0.12f))) {
+            Box(Modifier.fillMaxHeight().fillMaxWidth(Catalog.progress).background(C.Fg.copy(alpha = 0.7f)))
+        }
     }
 }
 

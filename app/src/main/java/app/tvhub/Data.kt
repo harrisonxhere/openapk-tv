@@ -8,6 +8,8 @@ import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.StatFs
+import android.util.JsonReader
+import android.util.JsonToken
 import android.util.LruCache
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,7 +29,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
+import java.io.FilterInputStream
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -86,44 +95,180 @@ object Catalog {
     var generated: String = ""
         private set
 
+    /** 加载进度 0..1，Splash 用来画进度条（按已读字节估算） */
+    var progress by mutableStateOf(0f)
+        private set
+
+    private var idIndex: Map<String, App> = emptyMap()
+    private var repoIndex: Map<String, App> = emptyMap()
+    private var forkIndex: Map<String, List<App>> = emptyMap()
+
+    /**
+     * 流式解析 catalog.json：JsonReader 边读边建 App，
+     * 不再先 readText() 成 3.3MB 字符串再建整棵 JSONObject 树（峰值内存约为原来的 1/3，低端电视明显更快）。
+     */
     suspend fun load(ctx: Context) {
         if (apps.isNotEmpty()) return
-        val parsed = withContext(Dispatchers.IO) {
-            val root = JSONObject(ctx.assets.open("catalog.json").bufferedReader().use { it.readText() })
-            generated = root.getString("generated")
-            val list = root.getJSONArray("apps")
-            (0 until list.length()).map { parse(list.getJSONObject(it)) }
+        /* 先试二进制缓存：命中时跳过 JSON 解析，二次启动近乎秒开 */
+        val key = cacheKey(ctx)
+        val cached = withContext(Dispatchers.IO) { BinCache.read(ctx, key) }
+        if (cached != null) {
+            generated = cached.first
+            publish(cached.second)
+            return
         }
+        val parsed = withContext(Dispatchers.Default) {
+            val total = runCatching { ctx.assets.openFd("catalog.json").use { it.length } }.getOrDefault(-1L)
+            val counting = CountingStream(ctx.assets.open("catalog.json", android.content.res.AssetManager.ACCESS_STREAMING))
+            val out = ArrayList<App>(3000)
+            JsonReader(InputStreamReader(BufferedInputStream(counting, 64 * 1024), Charsets.UTF_8)).use { r ->
+                r.beginObject()
+                while (r.hasNext()) when (r.nextName()) {
+                    "generated" -> generated = r.nextString()
+                    "apps" -> {
+                        r.beginArray()
+                        while (r.hasNext()) {
+                            out += readApp(r)
+                            if (total > 0 && out.size % 100 == 0) {
+                                val f = (counting.count.toFloat() / total).coerceIn(0f, 1f)
+                                withContext(Dispatchers.Main) { progress = f }
+                            }
+                        }
+                        r.endArray()
+                    }
+                    else -> r.skipValue()
+                }
+                r.endObject()
+            }
+            out
+        }
+        publish(parsed)
+        /* 缓存写盘放后台，不挡首屏；失败只是下次再解析一遍 */
+        val gen = generated
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { BinCache.write(ctx, key, gen, parsed) }
+    }
+
+    /** APK 更新（assets 可能换了）或格式升级时缓存自动失效 */
+    private fun cacheKey(ctx: Context): String {
+        val pi = runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0) }.getOrNull()
+        val size = runCatching { ctx.assets.openFd("catalog.json").use { it.length } }.getOrDefault(-1L)
+        return "v${BinCache.FORMAT}|${pi?.lastUpdateTime}|${pi?.longVersionCode}|$size"
+    }
+
+    private fun publish(parsed: List<App>) {
+        /* 与原 firstOrNull 语义一致：重复键保留第一条 */
+        idIndex = HashMap<String, App>(parsed.size * 2).also { m -> parsed.forEach { m.putIfAbsent(it.id, it) } }
+        repoIndex = HashMap<String, App>(parsed.size * 2).also { m -> parsed.forEach { m.putIfAbsent(it.repo, it) } }
+        forkIndex = parsed.filter { it.forkOf != null }.groupBy { it.forkOf!! }
+        progress = 1f
         apps = parsed
     }
 
-    private fun JSONObject.str(k: String): String? = if (has(k) && !isNull(k)) getString(k) else null
-    private fun JSONArray.objects() = (0 until length()).map { getJSONObject(it) }
+    private class CountingStream(inner: InputStream) : FilterInputStream(inner) {
+        @Volatile var count = 0L
+        override fun read(): Int = super.read().also { if (it >= 0) count++ }
+        override fun read(b: ByteArray, off: Int, len: Int): Int = super.read(b, off, len).also { if (it > 0) count += it }
+    }
 
-    private fun parse(o: JSONObject): App {
-        val art = o.optJSONObject("art") ?: JSONObject()
-        val shots = art.optJSONArray("shots")?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty()
+    private fun JsonReader.strOrNull(): String? =
+        if (peek() == JsonToken.NULL) { nextNull(); null } else nextString()
+
+    private fun JsonReader.intOrNull(): Int? =
+        if (peek() == JsonToken.NULL) { nextNull(); null } else nextInt()
+
+    private fun JsonReader.strings(): List<String> {
+        if (peek() == JsonToken.NULL) { nextNull(); return emptyList() }
+        val l = ArrayList<String>(4); beginArray(); while (hasNext()) strOrNull()?.let { l += it }; endArray(); return l
+    }
+
+    private fun readApp(r: JsonReader): App {
+        var id = ""; var repo = ""; var name = ""; var pkg = ""; var vc = 0L; var vn: String? = null
+        var minSdk: Int? = null; var room = ""; var group = ""; var sub = ""; var note = ""; var desc = ""
+        var maker = ""; var stars = 0; var licence: String? = null; var archived = false
+        var version = ""; var date = ""; var cert: String? = null; var forkOf: String? = null; var parentStars = 0
+        var topics: List<String> = emptyList()
+        var art = AppArt(null, null, null, emptyList())
+        val apks = ArrayList<Apk>(4); val releases = ArrayList<Release>(4)
+        r.beginObject()
+        while (r.hasNext()) when (r.nextName()) {
+            "id" -> id = r.nextString()
+            "repo" -> repo = r.nextString()
+            "name" -> name = r.nextString()
+            "package" -> pkg = r.nextString()
+            "versionCode" -> vc = r.nextLong()
+            "versionName" -> vn = r.strOrNull()
+            "minSdk" -> minSdk = r.intOrNull()
+            "room" -> room = r.nextString()
+            "group" -> group = r.strOrNull().orEmpty()
+            "sub" -> sub = r.strOrNull().orEmpty()
+            "note" -> note = r.strOrNull().orEmpty()
+            "desc" -> desc = r.strOrNull().orEmpty()
+            "topics" -> topics = r.strings()
+            "maker" -> maker = r.nextString()
+            "stars" -> stars = r.nextInt()
+            "licence" -> licence = r.strOrNull()
+            "archived" -> archived = if (r.peek() == JsonToken.NULL) { r.nextNull(); false } else r.nextBoolean()
+            "version" -> version = r.nextString()
+            "date" -> date = r.nextString()
+            "certSha256" -> cert = r.strOrNull()
+            "forkOf" -> forkOf = r.strOrNull()
+            "parentStars" -> parentStars = r.intOrNull() ?: 0
+            "art" -> art = readArt(r)
+            "apks" -> { r.beginArray(); while (r.hasNext()) apks += readApk(r); r.endArray() }
+            "releases" -> { r.beginArray(); while (r.hasNext()) releases += readRelease(r); r.endArray() }
+            else -> r.skipValue()
+        }
+        r.endObject()
         return App(
-            id = o.getString("id"), repo = o.getString("repo"), name = o.getString("name"),
-            pkg = o.getString("package"), versionCode = o.getLong("versionCode"), versionName = o.str("versionName"),
-            minSdk = if (o.has("minSdk") && !o.isNull("minSdk")) o.getInt("minSdk") else null,
-            room = o.getString("room"),
+            id = id, repo = repo, name = name, pkg = pkg, versionCode = vc, versionName = vn, minSdk = minSdk,
+            room = room,
             /* 数据里已按 12 组重新分配；万一拿到没有 group 的旧文件，按 room 现算一份兜底 */
-            group = o.optString("group").ifBlank { groupOfRoom(o.getString("room")) },
-            /* 二级 key：数据层已经写好（默认 = room，影视里迁出的音乐批是 Music）。
-               旧文件没有这个字段时退回 room，chips 自然退化成「只显示全部」 */
-            sub = o.optString("sub").ifBlank { o.optString("room") },
-            note = o.getString("note"), desc = o.optString("desc"),
-            maker = o.getString("maker"), stars = o.getInt("stars"), licence = o.str("licence"),
-            archived = o.optBoolean("archived"),
-            streams = STREAMS.containsMatchIn(listOf(o.getString("name"), o.getString("note"), o.optString("desc"), o.getString("repo"), o.getString("package"), o.optJSONArray("topics")?.toString().orEmpty()).joinToString(" ")),
-            version = o.getString("version"), date = o.getString("date"),
-            certSha256 = o.str("certSha256"),
-            art = AppArt(art.str("banner"), art.str("feature"), art.str("icon"), shots),
-            apks = o.getJSONArray("apks").objects().map { Apk(it.getString("name"), it.getString("abi"), it.getString("url"), it.getLong("size")) },
-            releases = o.getJSONArray("releases").objects().map { Release(it.getString("tag"), it.getString("date")) },
-            forkOf = o.str("forkOf"), parentStars = o.optInt("parentStars"),
+            group = group.ifBlank { groupOfRoom(room) },
+            /* 二级 key：旧文件没有这个字段时退回 room */
+            sub = sub.ifBlank { room },
+            note = note, desc = desc, maker = maker, stars = stars, licence = licence, archived = archived,
+            streams = STREAMS.containsMatchIn("$name $note $desc $repo $pkg ${topics.joinToString(" ")}"),
+            version = version, date = date, certSha256 = cert, art = art, apks = apks, releases = releases,
+            forkOf = forkOf, parentStars = parentStars,
         )
+    }
+
+    private fun readArt(r: JsonReader): AppArt {
+        if (r.peek() == JsonToken.NULL) { r.nextNull(); return AppArt(null, null, null, emptyList()) }
+        var banner: String? = null; var feature: String? = null; var icon: String? = null; var shots: List<String> = emptyList()
+        r.beginObject()
+        while (r.hasNext()) when (r.nextName()) {
+            "banner" -> banner = r.strOrNull()
+            "feature" -> feature = r.strOrNull()
+            "icon" -> icon = r.strOrNull()
+            "shots" -> shots = r.strings()
+            else -> r.skipValue()
+        }
+        r.endObject()
+        return AppArt(banner, feature, icon, shots)
+    }
+
+    private fun readApk(r: JsonReader): Apk {
+        var name = ""; var abi = ""; var url = ""; var size = 0L
+        r.beginObject()
+        while (r.hasNext()) when (r.nextName()) {
+            "name" -> name = r.nextString(); "abi" -> abi = r.nextString()
+            "url" -> url = r.nextString(); "size" -> size = r.nextLong()
+            else -> r.skipValue()
+        }
+        r.endObject()
+        return Apk(name, abi, url, size)
+    }
+
+    private fun readRelease(r: JsonReader): Release {
+        var tag = ""; var date = ""
+        r.beginObject()
+        while (r.hasNext()) when (r.nextName()) {
+            "tag" -> tag = r.nextString(); "date" -> date = r.nextString()
+            else -> r.skipValue()
+        }
+        r.endObject()
+        return Release(tag, date)
     }
 
     const val MIN_STARS = 10
@@ -134,14 +279,88 @@ object Catalog {
 
     val visible: List<App> get() = apps.filter { (it.stars >= MIN_STARS || it.parentStars >= MIN_STARS) && shown(it) }
 
-    fun forksOf(a: App): List<App> = apps.filter { it.forkOf == a.repo }
+    fun forksOf(a: App): List<App> = forkIndex[a.repo].orEmpty()
 
-    fun byRepo(repo: String): App? = apps.firstOrNull { it.repo == repo }
+    fun byRepo(repo: String): App? = repoIndex[repo]
 
     fun sibling(a: App, i: Installed): App? =
         apps.firstOrNull { it.pkg == a.pkg && it.id != a.id && it.certSha256 != null && it.certSha256 in i.certs }
 
-    fun byId(id: String): App? = apps.firstOrNull { it.id == id }
+    fun byId(id: String): App? = idIndex[id]
+}
+
+/**
+ * 目录的二进制缓存：filesDir/catalog.bin。
+ * 格式：魔数 + key + generated + 条数 + 每条 App 的定长字段序列（字符串 = int 字节长度 + UTF-8，-1 表示 null）。
+ * 任何读错（版本不符、截断、损坏）都返回 null，调用方回落到 JSON 解析并重写缓存。
+ * 改了 App / AppArt / Apk / Release 的字段 → 必须把 FORMAT +1。
+ */
+private object BinCache {
+    const val FORMAT = 1
+    private const val MAGIC = 0x54564842 // "TVHB"
+    private fun file(ctx: Context) = File(ctx.filesDir, "catalog.bin")
+
+    fun read(ctx: Context, key: String): Pair<String, List<App>>? = runCatching {
+        val f = file(ctx)
+        if (!f.isFile) return null
+        DataInputStream(BufferedInputStream(f.inputStream(), 128 * 1024)).use { d ->
+            if (d.readInt() != MAGIC) return null
+            if (d.s() != key) return null
+            val gen = d.s().orEmpty()
+            val n = d.readInt()
+            val out = ArrayList<App>(n)
+            repeat(n) { out += d.app() }
+            gen to out
+        }
+    }.getOrElse { file(ctx).delete(); null }
+
+    fun write(ctx: Context, key: String, gen: String, apps: List<App>) {
+        val f = file(ctx)
+        val tmp = File(f.parentFile, "catalog.bin.tmp")
+        runCatching {
+            DataOutputStream(BufferedOutputStream(tmp.outputStream(), 128 * 1024)).use { d ->
+                d.writeInt(MAGIC); d.s(key); d.s(gen); d.writeInt(apps.size)
+                apps.forEach { d.app(it) }
+            }
+            if (!tmp.renameTo(f)) { f.delete(); tmp.renameTo(f) }
+        }.onFailure { tmp.delete() }
+    }
+
+    private fun DataOutputStream.s(v: String?) {
+        if (v == null) { writeInt(-1); return }
+        val b = v.toByteArray(Charsets.UTF_8); writeInt(b.size); write(b)
+    }
+    private fun DataInputStream.s(): String? {
+        val n = readInt(); if (n < 0) return null
+        val b = ByteArray(n); readFully(b); return String(b, Charsets.UTF_8)
+    }
+    private fun DataOutputStream.ss(l: List<String>) { writeInt(l.size); l.forEach { s(it) } }
+    private fun DataInputStream.ss(): List<String> { val n = readInt(); return List(n) { s().orEmpty() } }
+
+    private fun DataOutputStream.app(a: App) {
+        s(a.id); s(a.repo); s(a.name); s(a.pkg); writeLong(a.versionCode); s(a.versionName)
+        writeInt(a.minSdk ?: Int.MIN_VALUE)
+        s(a.room); s(a.group); s(a.sub); s(a.note); s(a.desc); s(a.maker); writeInt(a.stars); s(a.licence)
+        writeBoolean(a.archived); writeBoolean(a.streams); s(a.version); s(a.date); s(a.certSha256)
+        s(a.art.banner); s(a.art.feature); s(a.art.icon); ss(a.art.shots)
+        writeInt(a.apks.size); a.apks.forEach { s(it.name); s(it.abi); s(it.url); writeLong(it.size) }
+        writeInt(a.releases.size); a.releases.forEach { s(it.tag); s(it.date) }
+        s(a.forkOf); writeInt(a.parentStars)
+    }
+
+    private fun DataInputStream.app(): App {
+        val id = s()!!; val repo = s()!!; val name = s()!!; val pkg = s()!!; val vc = readLong(); val vn = s()
+        val min = readInt().let { if (it == Int.MIN_VALUE) null else it }
+        val room = s()!!; val group = s()!!; val sub = s()!!; val note = s()!!; val desc = s()!!; val maker = s()!!
+        val stars = readInt(); val licence = s()
+        val archived = readBoolean(); val streams = readBoolean(); val version = s()!!; val date = s()!!; val cert = s()
+        val art = AppArt(s(), s(), s(), ss())
+        val apks = List(readInt()) { Apk(s()!!, s()!!, s()!!, readLong()) }
+        val rels = List(readInt()) { Release(s()!!, s()!!) }
+        val forkOf = s(); val ps = readInt()
+        return App(id, repo, name, pkg, vc, vn, min, room, group, sub, note, desc, maker, stars, licence,
+            archived, streams, version, date, cert, art, apks, rels, forkOf, ps)
+    }
 }
 
 /**
