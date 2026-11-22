@@ -263,6 +263,33 @@ REST 的 `releases/latest` 按请求数计费（5000/小时），一个仓库 1 
 UI 侧的「可更新」判定是 `i.versionCode < a.versionCode || UpdateIndex.isNewer(a)`：
 前者管「装机版本旧」，后者管「索引里有更新的 Release」。
 
+### 4.8 自更新（TV Hub 更新自己）
+
+目录应用靠 `apps` 段，TV Hub 自己靠**同一份文件里的 `self` 段**——不为它单开一个请求：
+
+```json
+"self": {
+  "repo": "harrisonxhere/tv-hub",
+  "tag": "v1.0.0",
+  "date": "2026-11-21",
+  "apk": { "name": "tv-hub-1.0.0.apk", "url": "...", "size": 3289061 }
+}
+```
+
+| 环节 | 做法 |
+|---|---|
+| 生成 | `fetch_updates.py --self <owner/repo>`（默认取 Actions 的 `GITHUB_REPOSITORY`），一次 REST 读自己的 `/releases/latest`，取体积最大的 APK |
+| 调度 | **不跟随应用调度**：`if not picked` 时走 `refresh_self()` 单独刷这一段，否则发版要等到某个应用到期才被客户端看见 |
+| 判定 | `UpdateIndex.selfNewer()` 把 `self.tag` 与 `BuildConfig.VERSION_NAME` 比数字段 |
+| 安装 | `Installer.startSelfUpdate()` 复用 `download()` + `commit()`，但**跳过** `certSha256` 比对 |
+| 展示 | 设置页「检查更新」行就地显示 `Downloading 64%` / `Installing…` / 失败原因 |
+
+**发版必须同时改 `versionName`**：只 bump `versionCode` 的话，`selfNewer()` 看不出来（索引里没有 versionCode）。
+`versionCode` 只负责「能不能覆盖安装」，`versionName` 才负责「该不该提示」。
+
+自更新不做签名比对是刻意的：Android 自身会拒绝签名不一致的覆盖安装，这里再拦一次只会让
+「将来换成正式 keystore」时把用户卡在装不上的状态。安装确认框由系统弹出——非系统应用拿不到静默安装权限。
+
 > 为什么不让设备直接打 GitHub API：匿名 60 次/小时，一个用户翻两屏就把额度烧光；
 > 而且 `api.github.com` 在国内不稳。索引文件一次拉全库，代价小得多。
 

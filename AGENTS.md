@@ -104,9 +104,9 @@ tv-hub/
 | `Data.kt` | 425 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
 | `Ui.kt` | 443 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
 | `Screens.kt` | 1956 | 根组合 `TvHub()` + `TopBar` + 7 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
-| `Installer.kt` | 220 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`） |
+| `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
 | `Mirror.kt` | 34 | 把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链） |
-| `UpdateIndex.kt` | 170 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上 |
+| `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 TV Hub 自更新 |
 
 **视图清单**（都在 `Screens.kt`，全部 `private`，由 `TvHub()` 分发）
 
@@ -205,6 +205,8 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 11. **`C.mark` 命名反直觉**：`dark == true` 用 `mark_dark`（白色外壳原色），浅色用 `mark`（深色外壳）。
 12. **应用首次冷启动要 ~20s** 读 3.3MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
+14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
+15. **`self` 段不跟着应用调度走**：`fetch_updates.py` 在「无到期应用」时会单独走 `refresh_self()`。如果把它塞回主流程的 `if not picked: return` 后面，自更新就要等某个应用到期才生效（踩过）。
 
 ---
 
