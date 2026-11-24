@@ -415,7 +415,7 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 - 用 `Dialog`（`usePlatformDefaultWidth = false`）而不是页面内浮层：独立窗口天然把焦点关在弹层里，
   返回键由系统转成 `onDismissRequest`，不需要手写焦点陷阱。弹层不继承 1280×720 的设计坐标系，
   内部按窗口尺寸重算一次 `LocalDensity`，保证字号和 1280 稿一致。
-- 结构：全屏 65% 黑遮罩 + 560dp 宽面板（`C.Card`、22 圆角、1dp `C.Line`），标题「界面语言」+
+- 结构：全屏 65% 黑遮罩 + 560dp 宽面板（`C.Card`、22 圆角、投影，不描边），标题「界面语言」+
   副标「N 个选项 · 按 OK 切换，返回键取消」，下面是 `LazyColumn`（最多露 7 行，再多就滚动）。
 - 行高 52dp，当前语言右侧打勾并加粗；聚焦行**整行反色**（`C.HiBg` / `C.HiFg`），不挂外扩焦点环——
   `LazyColumn` 会裁边，环会被切平。

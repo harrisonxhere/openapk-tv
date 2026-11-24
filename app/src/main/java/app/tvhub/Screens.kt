@@ -742,6 +742,7 @@ private fun ViewAllCard(
     val ink = if (C.dark) Color.White else C.Fg
     Focusable(onClick, modifier, requester = requester, onFocus = onFocus) { f ->
         Column(Modifier.fillMaxSize()) {
+            /* 不画外包边：边界交给「本栏主色渐变 + 投影」。1dp 的 C.Line 在一整排卡上会连成一条发灰的框 */
             Box(
                 Modifier.fillMaxWidth().weight(1f).ring(f, tileRadius(122.dp), 1.015f)
                     .cardShadow(shape, 16.dp)
@@ -754,11 +755,6 @@ private fun ViewAllCard(
                                 lerp(base, accent, if (C.dark) 0.26f else 0.14f),
                             ),
                         ),
-                    )
-                    .border(
-                        1.dp,
-                        if (f) Color(0x61FFFFFF) else if (C.dark) Color(0x33FFFFFF) else C.Line,
-                        shape,
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -797,7 +793,6 @@ private fun HotRow(a: App, modifier: Modifier = Modifier, onOpen: () -> Unit) {
         Row(
             Modifier.fillMaxSize().ring(f, 16.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(16.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(16.dp))
                 .padding(horizontal = 7.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -845,12 +840,12 @@ private fun WideCard(
     val edges = remember(bmp) { bmp?.let { edgeColors(it) } ?: (Color(0xFF141821) to Color(0xFF141821)) }
     Focusable(onOpen, modifier, requester = requester, onFocus = onFocus) { f ->
         Column(Modifier.fillMaxSize()) {
+            /* 不画外包边：满图的卡边界交给投影与图片本身的边缘，加 1dp 灰线只会把图「框住」 */
             Box(
                 Modifier.fillMaxWidth().weight(1f).ring(f, tileRadius(122.dp), 1.015f)
                     .cardShadow(tileShape(122.dp), 16.dp)
                     .clip(tileShape(122.dp))
-                    .background(Brush.horizontalGradient(listOf(edges.first, edges.second)))
-                    .border(1.dp, if (f) Color(0x61FFFFFF) else C.Line, tileShape(122.dp)),
+                    .background(Brush.horizontalGradient(listOf(edges.first, edges.second))),
             ) {
                 if (bmp != null) {
                     Image(
@@ -1119,8 +1114,7 @@ private fun PosterCard(
             Box(
                 Modifier.fillMaxWidth().aspectRatio(16f / 9f).ring(f, tileRadius(96.dp), 1.015f)
                     .cardShadow(tileShape(96.dp), 16.dp)
-                    .clip(tileShape(96.dp)).background(C.Card)
-                    .border(1.dp, if (f) Color(0x61FFFFFF) else C.Line, tileShape(96.dp)),
+                    .clip(tileShape(96.dp)).background(C.Card),
             ) {
                 if (bmp != null) {
                     Image(
@@ -1258,8 +1252,7 @@ private fun RoomTile(
         Box(
             Modifier.fillMaxSize().ring(f, 15.dp, 1.02f)
                 .cardShadow(RoundedCornerShape(15.dp), 18.dp)
-                .clip(RoundedCornerShape(15.dp)).background(C.Card)
-                .border(1.dp, C.Line, RoundedCornerShape(15.dp)),
+                .clip(RoundedCornerShape(15.dp)).background(C.Card),
         ) {
             if (bmp != null) {
                 Image(
@@ -1597,7 +1590,6 @@ private fun InstRow(
         Row(
             Modifier.fillMaxWidth().height(60.dp).ring(f, 15.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(15.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(15.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1637,7 +1629,6 @@ private fun OtherRow(o: LocalApp, onClick: () -> Unit) {
         Row(
             Modifier.fillMaxWidth().height(52.dp).ring(f, 14.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(14.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(14.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1666,7 +1657,7 @@ private fun StoreCard(used: Long, apps: Long, cache: Long, free: Long, total: Lo
     fun frac(v: Long) = if (denom > 0) (v.toFloat() / denom).coerceIn(0f, 1f) else 0f
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(C.RowBg)
-            .border(1.dp, C.Line, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
             T(str(R.string.storage_local), 11.sp, color = C.Fg3, weight = FontWeight.Medium)
@@ -1707,7 +1698,6 @@ private fun SmallRow(title: String, sub: String, value: String, onClick: () -> U
         Row(
             Modifier.fillMaxWidth().height(54.dp).ring(f, 15.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(15.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(15.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1831,7 +1821,6 @@ private fun SearchRow(a: App, onClick: () -> Unit) {
         Row(
             Modifier.fillMaxWidth().height(60.dp).ring(f, 15.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(15.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(15.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1855,7 +1844,6 @@ private fun KeywordRow(word: String, whenText: String, onClick: () -> Unit) {
         Row(
             Modifier.fillMaxWidth().height(54.dp).ring(f, 14.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(14.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(14.dp))
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -1957,8 +1945,7 @@ private fun BoxScope.DetailScreen(
                 Box(
                     Modifier.size(168.dp, 94.dp).cardShadow(tileShape(94.dp), 17.dp)
                         .clip(tileShape(94.dp))
-                        .background(Brush.horizontalGradient(listOf(edges.first, edges.second)))
-                        .border(1.dp, C.Line, tileShape(94.dp)),
+                        .background(Brush.horizontalGradient(listOf(edges.first, edges.second))),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (bmp != null) {
@@ -2026,8 +2013,7 @@ private fun BoxScope.DetailScreen(
                 Modifier.fillMaxWidth().weight(1f).heightIn(min = 184.dp)
                     .cardShadow(tileShape(184.dp), 24.dp)
                     .clip(tileShape(184.dp))
-                    .background(Brush.horizontalGradient(listOf(edges.first, edges.second)))
-                    .border(1.dp, C.Line, tileShape(184.dp)),
+                    .background(Brush.horizontalGradient(listOf(edges.first, edges.second))),
             ) {
                 if (bmp != null) {
                     MaskedArt(bmp, maskStart = 0.10f, maskEnd = 0.90f)
@@ -2081,7 +2067,7 @@ private fun BoxScope.DetailScreen(
                 Modifier.padding(top = 18.dp).fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
                     .background(C.RowBg)
-                    .border(1.dp, if (signed) ok.copy(alpha = 0.26f) else C.Line, RoundedCornerShape(14.dp))
+                    .border(1.dp, if (signed) ok.copy(alpha = 0.26f) else Color.Transparent, RoundedCornerShape(14.dp))
                     .padding(horizontal = 15.dp, vertical = 13.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -2606,7 +2592,6 @@ private fun LangPickerDialog(current: Int, onDismiss: () -> Unit, onPick: (Int) 
                             .cardShadow(RoundedCornerShape(22.dp), 34.dp)
                             .clip(RoundedCornerShape(22.dp))
                             .background(C.Card)
-                            .border(1.dp, C.Line, RoundedCornerShape(22.dp))
                             .padding(vertical = 18.dp),
                     ) {
                         Column(Modifier.padding(horizontal = 22.dp)) {
@@ -2682,7 +2667,6 @@ private fun SetRow(
         Row(
             Modifier.fillMaxWidth().height(height).ring(f, 15.dp, 1.012f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(15.dp))
-                .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(15.dp))
                 .padding(horizontal = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
