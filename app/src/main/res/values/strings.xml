@@ -96,7 +96,8 @@
     <string name="row_tv_sub">apps that ship TV artwork</string>
     <string name="row_recent">Recently updated</string>
     <string name="row_recent_sub">new releases on GitHub</string>
-    <string name="shelf_more">See all</string>
+    <string name="shelf_all">View all</string>
+    <string name="shelf_sub">%1$d featured</string>
     <string name="row_starred">Most starred</string>
     <string name="row_categories">Categories</string>
     <string name="row_categories_sub">browse by what apps do</string>

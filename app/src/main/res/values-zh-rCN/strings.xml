@@ -98,7 +98,8 @@
     <string name="row_tv_sub">提供电视版封面的应用</string>
     <string name="row_recent">最近更新</string>
     <string name="row_recent_sub">GitHub 上的新版本</string>
-    <string name="shelf_more">查看更多</string>
+    <string name="shelf_all">全部</string>
+    <string name="shelf_sub">精选 %1$d 款</string>
     <string name="row_starred">星标最多</string>
     <string name="row_categories">分类</string>
     <string name="row_categories_sub">按用途浏览</string>

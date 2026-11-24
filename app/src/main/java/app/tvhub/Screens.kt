@@ -531,7 +531,8 @@ private fun NavItem(
    顶部导航固定，滚动视口 72..660（588 高）。视口内节奏：
      主推 344 ─24→ 最近更新（标题 24 + 16 + 卡行 128）
               ─24→ 每个分类一栏（同构：标题 24 + 16 + 卡行 128）
-   每栏 5 张等宽卡：4 个应用 + 1 张「查看更多」，横向间距 20，宽 = (1152-80)/5。
+   每栏 5 张卡：首位一张窄的「全部」卡（宽 128，卡面写这一栏的总数），
+   后面 4 个应用等宽，横向间距 20 —— 应用卡宽 = (1152-128-80)/4 = 236。
    分栏集合与顺序 = 分类页的一级分类（GROUP_KEYS，后接 OTHER），
    名字走 groupName()、数量走 tile_count，和磁贴是同一套口径。 */
 @Composable
@@ -676,8 +677,10 @@ private fun SectionHead(title: String, sub: String) {
     }
 }
 
-/** 一个一级分类的货架：4 个应用 + 末位「查看更多」。
- *  分组键是 group（和分类页磁贴同一个 key），不是上游 room。 */
+/** 一个一级分类的货架：首位「全部」卡（带总数）+ 4 个应用。
+ *  分组键是 group（和分类页磁贴同一个 key），不是上游 room。
+ *  「全部」放最前面而不是末位：遥控器从左往右走，先经过入口再到精选，
+ *  焦点一进这一行就能看到「这一栏一共有多少款」。 */
 @Composable
 private fun ShelfRow(
     group: String,
@@ -691,13 +694,20 @@ private fun ShelfRow(
     openRoom: (String) -> Unit,
 ) {
     Column {
-        /* 副标与分类页磁贴同一句（目录 N 款 · 精选 M），两边对同一个分类给出同一个数 */
-        SectionHead(groupName(group), str(R.string.tile_count, groupTotal(group), total))
+        /* 标题副标只留「精选了几款」——总数已经写在首位卡的卡面上，这里再报一遍是重复 */
+        SectionHead(groupName(group), str(R.string.shelf_sub, apps.size))
         Spacer(Modifier.height(16.dp))
         Row(
             Modifier.fillMaxWidth().height(148.dp),
             horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
+            ViewAllCard(
+                accent = groupAccent(group),
+                total = total,
+                modifier = Modifier.width(128.dp).fillMaxHeight(),
+                requester = if (lastId == "all:$group") target else null,
+                onFocus = { onCardFocus("all:$group"); alignSelf() },
+            ) { openRoom(group) }
             apps.forEach { a ->
                 WideCard(
                     a = a,
@@ -706,25 +716,20 @@ private fun ShelfRow(
                     onFocus = { onCardFocus(a.id); alignSelf() },
                 ) { openDetail(a.id) }
             }
-            /* 应用不足 4 个时先占空位，保证「查看更多」永远贴在最右 */
+            /* 应用不足 4 个时先占空位，保证应用卡宽度不随数量变化 */
             repeat((4 - apps.size).coerceAtLeast(0)) { Spacer(Modifier.weight(1f)) }
-            MoreCard(
-                accent = groupAccent(group),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                requester = if (lastId == "more:$group") target else null,
-                onFocus = { onCardFocus("more:$group"); alignSelf() },
-            ) { openRoom(group) }
         }
     }
 }
 
-/** 分栏末位的「查看更多」：不铺图，用本栏主色的低饱和渐变打底 + 一个箭头圆盘。
- *  这样它仍属于这一栏（色调跟着分类走），又和满图的应用卡一眼区分开；
- *  焦点态整张反色，与 WideCard 的焦点语言保持一致。
- *  卡面不放数量：数字交给栏标题的副标（目录 N 款 · 精选 M），卡里只保留一个入口符号。 */
+/** 分栏首位的「全部」卡：小字标签 + 大号总数，点进去就是这一分类的房间页。
+ *  比应用卡窄一截（128 vs 236）是刻意的：它在节奏上属于「入口」而不是「内容」，
+ *  宽度差一眼就能把两者分开，又仍然站在同一行里、跟着本栏主色走。
+ *  不铺图，只用本栏主色的低饱和渐变打底；焦点态整张反色，与 WideCard 一致。 */
 @Composable
-private fun MoreCard(
+private fun ViewAllCard(
     accent: Color,
+    total: Int,
     modifier: Modifier = Modifier,
     requester: FocusRequester? = null,
     onFocus: () -> Unit = {},
@@ -734,7 +739,7 @@ private fun MoreCard(
     /* 底在深色主题用深灰蓝、浅色主题用近白：渐变从「本栏主色」过渡到同一主色的低混比，
        卡片边缘始终有实体、不会在右下角化进背景。前景色跟着底走，两种主题都保住对比度。 */
     val base = if (C.dark) Color(0xFF1A1F28) else Color(0xFFF5F7FB)
-    val tint = if (C.dark) Color.White else C.Fg
+    val ink = if (C.dark) Color.White else C.Fg
     Focusable(onClick, modifier, requester = requester, onFocus = onFocus) { f ->
         Column(Modifier.fillMaxSize()) {
             Box(
@@ -745,8 +750,8 @@ private fun MoreCard(
                         if (f) Brush.linearGradient(listOf(C.HiBg, C.HiBg))
                         else Brush.linearGradient(
                             listOf(
-                                lerp(base, accent, if (C.dark) 0.88f else 0.52f),
-                                lerp(base, accent, if (C.dark) 0.38f else 0.20f),
+                                lerp(base, accent, if (C.dark) 0.62f else 0.34f),
+                                lerp(base, accent, if (C.dark) 0.26f else 0.14f),
                             ),
                         ),
                     )
@@ -757,19 +762,25 @@ private fun MoreCard(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    Modifier.size(56.dp).clip(CircleShape)
-                        .background(if (f) C.HiFg.copy(alpha = 0.08f) else tint.copy(alpha = 0.16f))
-                        .border(1.dp, if (f) C.HiFg.copy(alpha = 0.18f) else tint.copy(alpha = 0.28f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { Ico(Icons.ChevRight, 18.dp, if (f) C.HiFg else tint) }
+                Column(
+                    Modifier.padding(horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    T(
+                        str(R.string.shelf_all), 11.sp,
+                        color = if (f) C.HiFg.copy(alpha = 0.72f) else ink.copy(alpha = 0.55f),
+                        weight = FontWeight.SemiBold, maxLines = 1,
+                    )
+                    T(
+                        Fmt.count(total), 34.sp,
+                        color = if (f) C.HiFg else C.Fg,
+                        weight = FontWeight.Bold, tight = true, maxLines = 1,
+                    )
+                }
             }
-            Spacer(Modifier.height(8.dp))
-            T(
-                str(R.string.shelf_more), 12.5.sp,
-                color = if (f) C.Fg else C.Fg2,
-                weight = FontWeight.SemiBold, maxLines = 1,
-            )
+            /* 卡面不放底部标题（「全部」已经在卡里），但正文高度要和应用卡对齐：
+               8dp 间距 + 12.5sp 标题行 = 24dp */
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
