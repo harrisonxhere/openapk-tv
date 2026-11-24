@@ -263,9 +263,9 @@ REST 的 `releases/latest` 按请求数计费（5000/小时），一个仓库 1 
 UI 侧的「可更新」判定是 `i.versionCode < a.versionCode || UpdateIndex.isNewer(a)`：
 前者管「装机版本旧」，后者管「索引里有更新的 Release」。
 
-### 4.8 自更新（TV Hub 更新自己）
+### 4.8 自更新（OpenAPK TV 更新自己）
 
-目录应用靠 `apps` 段，TV Hub 自己靠**同一份文件里的 `self` 段**——不为它单开一个请求：
+目录应用靠 `apps` 段，OpenAPK TV 自己靠**同一份文件里的 `self` 段**——不为它单开一个请求：
 
 ```json
 "self": {

@@ -1,4 +1,4 @@
-# TV Hub
+# OpenAPK TV
 
 > **衍生版本 / Derivative work**
 > 本仓库是 [Open Shelf](https://github.com/wingedpanther/openshelf)（wingedpanther）的
@@ -7,7 +7,7 @@
 
 An app store for Android TV that lists open-source TV apps from GitHub and installs them from each project's releases, using only the remote.
 
-Google Play on TV only carries apps that publish there. Plenty of good TV apps only live on GitHub, where installing one means a phone, a download link and a guess at which APK fits your box. TV Hub does that part for you.
+Google Play on TV only carries apps that publish there. Plenty of good TV apps only live on GitHub, where installing one means a phone, a download link and a guess at which APK fits your box. OpenAPK TV does that part for you.
 
 ## 下载 / Download
 
@@ -28,7 +28,7 @@ adb install -r tv-hub-1.0.0.apk
 | `app/src/main/java/app/tvhub/` | 全部 Kotlin 源码（7 个文件，约 3,300 行）：`Screens.kt` 七个视图、`Ui.kt` 设计系统、`Data.kt` 数据与偏好、`Installer.kt` 下载安装、`Mirror.kt` 国内源、`UpdateIndex.kt` 版本索引 |
 | `app/src/main/res/values{,-zh-rCN}/` | 英文基准 + 简体中文文案（各 300+ 条） |
 | `docs/screenshots/current/` | 当前界面实拍（深浅主题、设置页） |
-| `art/` | 图标源图与生成脚本 |
+| `art/` | 品牌标识真源 `logo.svg`（猫耳电视 + 屏幕内机器人头）与图标/横幅生成脚本 |
 
 **先读这三份**：
 
@@ -66,7 +66,7 @@ You need an Android TV, Google TV, Fire TV or other Android box running Android 
 
 1. Download the latest `TVHub-x.y.z.apk` from this repository's Releases.
 2. Sideload it with an app like Downloader, or from a computer with `adb install TVHub-x.y.z.apk`.
-3. The first time you install an app, Android asks you to allow installs from TV Hub. Allow it once.
+3. The first time you install an app, Android asks you to allow installs from OpenAPK TV. Allow it once.
 
 ## The catalog
 
@@ -98,7 +98,7 @@ All the app's text is in [app/src/main/res/values/strings.xml](app/src/main/res/
 
 ## Licence
 
-TV Hub is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+OpenAPK TV is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
 
 The Geist font is licensed under the SIL Open Font License 1.1. See [FONT-LICENSE-OFL.txt](FONT-LICENSE-OFL.txt).
 

@@ -31,7 +31,7 @@ import java.util.zip.GZIPInputStream
 object UpdateIndex {
     data class Latest(val tag: String, val date: String, val apks: List<Apk>)
 
-    /** 索引里的 `self` 段：TV Hub 自己的最新 Release。apk 可能为空（发布时忘了传附件） */
+    /** 索引里的 `self` 段：OpenAPK TV 自己的最新 Release。apk 可能为空（发布时忘了传附件） */
     data class SelfRelease(val tag: String, val date: String, val apk: Apk?)
 
     /** id → 最新版本。只包含「和内置 catalog 版本不同」的条目，没有条 = 已是最新 */
@@ -164,7 +164,7 @@ object UpdateIndex {
         return SelfRelease(tag, o.optString("date"), apk)
     }
 
-    /** TV Hub 自己有没有新版：按 versionName 的数字段比（发版必须同时改 versionName） */
+    /** OpenAPK TV 自己有没有新版：按 versionName 的数字段比（发版必须同时改 versionName） */
     fun selfNewer(): Boolean {
         val s = self ?: return false
         return newer(s.tag, BuildConfig.VERSION_NAME)

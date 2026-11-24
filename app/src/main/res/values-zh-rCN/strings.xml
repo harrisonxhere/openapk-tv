@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">OpenAPK TV</string>
+
     <string name="tab_discover">发现</string>
     <string name="tab_categories">分类</string>
     <string name="tab_search">搜索</string>
@@ -71,7 +73,7 @@
     <string name="action_update">更新</string>
     <string name="action_open">打开</string>
 
-    <string name="err_allow_install">请先允许 TV Hub 安装应用，然后再次点击安装。</string>
+    <string name="err_allow_install">请先允许 OpenAPK TV 安装应用，然后再次点击安装。</string>
     <string name="err_generic">出了点问题，请重试。</string>
     <string name="err_download_http">下载失败（HTTP %1$d），请重试。</string>
     <string name="err_save">无法保存下载文件，请清理空间后重试。</string>
@@ -79,7 +81,7 @@
     <string name="err_conflict">已安装的版本由其他签名者签发。请先卸载，再从这里安装。</string>
     <string name="err_storage">这台电视存储空间不足。</string>
     <string name="err_incompatible">此安装包无法在这台电视上运行。</string>
-    <string name="held_key_changed">此文件的签名密钥与 TV Hub 为 %1$s 记录的不一致，已暂停更新等待确认。</string>
+    <string name="held_key_changed">此文件的签名密钥与 OpenAPK TV 为 %1$s 记录的不一致，已暂停更新等待确认。</string>
     <string name="held_sibling">这台电视上的 %1$s 是 %2$s 构建版本。请先卸载，再安装此版本。</string>
     <string name="held_other_build">这台电视上的 %1$s 来自其他人的构建版本，Android 不会用此文件更新它。</string>
 
@@ -143,13 +145,13 @@
         <item quantity="other">%1$d 个更新可用</item>
     </plurals>
     <string name="held_count">%1$d 个已暂停待确认</string>
-    <string name="from_shelf_count">%1$d 个来自 TV Hub</string>
+    <string name="from_shelf_count">%1$d 个来自 OpenAPK TV</string>
     <plurals name="other_apps">
         <item quantity="other">这台电视上还有 %1$d 个其他应用</item>
     </plurals>
     <string name="update_all">全部更新</string>
-    <string name="section_from_shelf">来自 TV Hub</string>
-    <string name="mine_empty">从 TV Hub 安装的应用会显示在这里，并提示更新。</string>
+    <string name="section_from_shelf">来自 OpenAPK TV</string>
+    <string name="mine_empty">从 OpenAPK TV 安装的应用会显示在这里，并提示更新。</string>
     <string name="find_app">去找应用</string>
     <string name="held_sub">%1$s · 签名密钥不同</string>
     <string name="update_held">更新已暂停</string>
@@ -157,22 +159,22 @@
     <string name="up_to_date">已是最新</string>
     <string name="details">详情</string>
     <string name="section_other">这台电视上的其他应用</string>
-    <string name="not_in_list">未收录在 TV Hub 目录中</string>
+    <string name="not_in_list">未收录在 OpenAPK TV 目录中</string>
 
     <string name="set_accent">强调色</string>
     <string name="set_accent_help">影响焦点框、当前按钮和已安装应用旁的圆点。按确认键切换下一种。</string>
     <string name="set_appearance">外观</string>
     <string name="set_appearance_help">浅色把书架挂在白墙上，深色挂在炭灰墙面上，适合夜晚；跟随电视则使用系统深色设置。按确认键切换。</string>
-    <string name="set_install">允许 TV Hub 安装应用</string>
+    <string name="set_install">允许 OpenAPK TV 安装应用</string>
     <string name="allowed">已允许</string>
     <string name="not_allowed">尚未允许</string>
-    <string name="set_install_help">Android 只需授权一次。之后 TV Hub 就能安装和更新应用，每次安装仍会单独确认。</string>
+    <string name="set_install_help">Android 只需授权一次。之后 OpenAPK TV 就能安装和更新应用，每次安装仍会单独确认。</string>
     <string name="set_apk">安装包类型</string>
     <string name="apk_auto">自动 · %1$s</string>
-    <string name="set_apk_help">很多应用会为不同芯片提供不同安装包，TV Hub 会挑选适配这台电视的版本。本机支持：%1$s。</string>
+    <string name="set_apk_help">很多应用会为不同芯片提供不同安装包，OpenAPK TV 会挑选适配这台电视的版本。本机支持：%1$s。</string>
     <string name="set_key">应用签名密钥变更时</string>
     <string name="set_key_value">暂停更新</string>
-    <string name="set_key_help">每个版本都由开发者签名。若新文件由他人签名，TV Hub 会保留当前版本，不予安装。</string>
+    <string name="set_key_help">每个版本都由开发者签名。若新文件由他人签名，OpenAPK TV 会保留当前版本，不予安装。</string>
     <string name="set_catalog">应用目录</string>
     <string name="catalog_value">%1$s 款应用 · %2$s</string>
     <string name="catalog_help">收录 GitHub 上所有提供 APK、且近三年内发布过版本的 Android TV 应用。核对日期 %1$s。此版本将目录内置在应用中。</string>
@@ -186,7 +188,7 @@
     <string name="cache_value">%1$s · 清除</string>
     <string name="set_cache_help">已下载的 APK 会保存在这里，重装时无需再次下载。按确认键清除。</string>
     <string name="set_about">关于</string>
-    <string name="about_value">TV Hub %1$s</string>
+    <string name="about_value">OpenAPK TV %1$s</string>
     <string name="about_help">本应用是基于 Open Shelf（wingedpanther）的非官方衍生版，2026-11-14 首次修改，依 GPL-3.0 开源，完整声明与源码见项目仓库。应用名称、图片和安装包来自各项目的 GitHub 仓库。</string>
     <string name="settings_footer">版本 %1$s · %2$s 款应用</string>
 
@@ -268,7 +270,7 @@
     <string name="set_wifi">仅 Wi-Fi 下载</string>
     <string name="set_wifi_sub">移动热点下暂停大文件</string>
     <string name="set_boot">开机自动启动</string>
-    <string name="set_boot_sub">电视开机后直接进入 TV Hub</string>
+    <string name="set_boot_sub">电视开机后直接进入 OpenAPK TV</string>
     <string name="set_voice">语音搜索</string>
     <string name="set_voice_sub">按住遥控器语音键直接说话</string>
     <string name="set_cache_sub">已缓存安装包 %1$s</string>
@@ -291,7 +293,7 @@
     <string name="toast_updated_all">已加入 %1$d 个更新任务</string>
     <string name="toast_cleared">已清理 %1$s 缓存</string>
     <string name="toast_checked">已是最新版本</string>
-    <string name="toast_about">TV Hub %1$s · 开源应用目录</string>
+    <string name="toast_about">OpenAPK TV %1$s · 开源应用目录</string>
     <string name="toast_reset">已恢复默认设置</string>
     <string name="toast_lang">界面语言 · %1$s</string>
     <string name="toast_queue">下载队列 · 演示</string>

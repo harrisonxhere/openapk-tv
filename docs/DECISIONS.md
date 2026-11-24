@@ -21,7 +21,7 @@ GPL 原文核实后的结论（决定了后面所有命名行为）：
 | §6(d) | 分发 APK 须同渠道提供源码 | Releases 必须带源码 |
 | §7(e) | 商标权不随 GPL 授予 | **必须改名换标**，不能继续叫 Open Shelf |
 
-**定名**：用户 2026-11-14 16:07 定为 **TV Hub**（英文），此前给过的中文候选（「开架」等）未采用。
+**定名**：用户 2026-11-14 16:07 定为 **OpenAPK TV**（英文），此前给过的中文候选（「开架」等）未采用。
 定名后一次性完成技术标识脱钩：`namespace` / `applicationId` / 6 个 kt 的 package / 源码目录 /
 `rootProject.name` / User-Agent / Manifest label / 22 处界面自称。
 
@@ -30,7 +30,7 @@ GPL 原文核实后的结论（决定了后面所有命名行为）：
 
 **图标**：用户提供 Gemini 生成的猫耳电视图（黑底白壳 + 四色象限）。
 `art/generate_icons.py` 用 floodfill 从四角抠掉连通黑底（保住屏幕内深色边框，主体 bbox 不裁切），
-生成 12 张：5 档 launcher + 5 档 banner（16:9 黑底 + 图标 + Geist「TV Hub」，满足 TV-BN 要求横幅含应用名）+ 2 张 mark。
+生成 12 张：5 档 launcher + 5 档 banner（16:9 黑底 + 图标 + Geist「OpenAPK TV」，满足 TV-BN 要求横幅含应用名）+ 2 张 mark。
 
 > TV 规范要点：launcher 基准 80dp（不是手机的 48dp），xxxhdpi 要 320×320；
 > 1080p 主屏上 banner 实际只渲染 192×108，所以横幅里的字必须够大。

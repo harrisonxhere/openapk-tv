@@ -510,7 +510,7 @@ def write_index(out, doc):
 def refresh_self(args, token):
     """本轮没有到期应用时，只把 self 段刷一遍。
     self 和调度无关：如果跟着 due 轮一起被跳过，客户端要等到「某个应用到期」
-    才能看到 TV Hub 的新版本，可能拖上一整天。"""
+    才能看到 OpenAPK TV 的新版本，可能拖上一整天。"""
     plain = os.path.join(args.out, "updates.json")
     if not os.path.exists(plain):
         return

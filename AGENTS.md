@@ -1,4 +1,4 @@
-# AGENTS.md — TV Hub 项目说明书
+# AGENTS.md — OpenAPK TV 项目说明书
 
 > 给任何代码助手（Claude Code / Cursor / Codex / Copilot …）的第一份文件。
 > 读完这一页就能动手改代码，不必翻历史聊天记录。
@@ -8,10 +8,10 @@
 
 ## 1. 这是什么
 
-**TV Hub** 是一个 Android TV 应用商店客户端：从 GitHub 抓好的目录里列出约 2,900 款开源 TV 应用，
+**OpenAPK TV** 是一个 Android TV 应用商店客户端：从 GitHub 抓好的目录里列出约 2,900 款开源 TV 应用，
 从各项目 Releases 下载 APK 并调用系统 `PackageInstaller` 安装。
 
-- 包名 / namespace：`app.tvhub`；显示名：`TV Hub`
+- 包名 / namespace：`app.tvhub`；显示名：`OpenAPK TV`
 - 上游：[wingedpanther/openshelf](https://github.com/wingedpanther/openshelf) commit `1e18709`，**GPL-3.0-only**
 - 本项目是**非官方衍生版**，首次修改 2026-11-14。相对上游的实质改动：
   1. 全量简体中文化（`values-zh-rCN`）
@@ -75,10 +75,11 @@ tv-hub/
 │       ├── assets/catalog.json        ← 3.3MB 目录快照，2923 款应用 / 18 分类
 │       ├── java/app/tvhub/            ← 全部源码，7 个文件 3300 行
 │       └── res/values{,-zh-rCN}/strings.xml
-├── art/                       ← 图标素材
-│   ├── generate_icons.py      ← 可复现的图标生成脚本（PIL 抠图 + 5 档尺寸）
-│   ├── source/                ← 猫耳电视原图
-│   └── logo.svg / mark.svg / logo-line.svg
+├── art/                       ← 品牌标识（设计真源）
+│   ├── logo.svg               ← 应用图标/横幅的真源：猫耳电视 + 屏幕内机器人头（1024 画布）
+│   ├── logo-badge.svg         ← 顶栏/启动页徽标真源：绿色渐变圆底 + 白色电视（1024 画布）
+│   ├── generate_icons.py      ← 由 logo-1024.png 生成 5 档启动器图标 + 5 档 TV 横幅
+│   └── source/                ← logo-1024.png（logo.svg 的 Chrome 渲染产物）+ 原始 svg 备份
 ├── .github/workflows/updates.yml  ← 每日抓取应用更新 → data/updates/ + updates release
 ├── data/catalog-source-2026-11-20.json  ← 上游目录原始快照（重新生成 catalog.json 用）
 ├── docs/
@@ -106,7 +107,7 @@ tv-hub/
 | `Screens.kt` | 1956 | 根组合 `TvHub()` + `TopBar` + 7 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
 | `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
 | `Mirror.kt` | 34 | 把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链） |
-| `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 TV Hub 自更新 |
+| `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 OpenAPK TV 自更新 |
 
 **视图清单**（都在 `Screens.kt`，全部 `private`，由 `TvHub()` 分发）
 
@@ -202,7 +203,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 8. **详情页横幅高度**：左列 `fillMaxHeight()`，横幅 `weight(1f)`，`590dp = 720 - 30(下边距) - 70(起始偏移)`。改这两处数字要同步，否则底部留死白或溢出。
 9. **`Fmt.gbNum()` 返回纯数字**，单位在字符串资源里拼。之前用 `gb().substringBefore(" GB")` 依赖英文字面量，切中文就崩。
 10. **热词 / 时段是 `<string-array>`**（`hot_words`、`recent_times`），不是 Kotlin 常量。
-11. **`C.mark` 命名反直觉**：`dark == true` 用 `mark_dark`（白色外壳原色），浅色用 `mark`（深色外壳）。
+11. **品牌标识有两份，别搞混**：顶栏/启动页的 `Icons.Logo` 来自 `art/logo-badge.svg`，是**彩色**向量（绿渐变圆 + 白描边），必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把圆和内部图形染成同一个颜色，直接看不见。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`。改徽标只动前者，改应用图标才动后者。
 12. **应用首次冷启动要 ~20s** 读 3.3MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。

@@ -142,7 +142,7 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 
 | 区 | 内容 |
 |---|---|
-| 左 | `Icons.Logo` 30dp + 10dp + 「TV Hub」17sp Bold（BETA 已移除） |
+| 左 | `Brand(30.dp)`（彩色徽标，**不走 tint**）+ 10dp + 「OpenAPK TV」17sp Bold（BETA 已移除） |
 | 中 | 胶囊导航：44dp 高、`CircleShape`、`Line` 描边、内边距 4dp；发现 / 分类 / 我的应用 三项**等宽**、36dp 高 |
 | 右 | 搜索按钮（40×40）+ `weight(1f)` + 齿轮（40×40），聚焦反色 |
 

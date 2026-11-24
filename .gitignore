@@ -16,3 +16,4 @@ tools/*
 __pycache__/
 *.pyc
 dist/
+art/rebrand-preview/

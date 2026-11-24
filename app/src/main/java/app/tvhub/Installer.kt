@@ -102,7 +102,7 @@ object Installer {
     }
 
     /**
-     * 更新 TV Hub 自己。和目录应用走同一条下载 + PackageInstaller 链路，
+     * 更新 OpenAPK TV 自己。和目录应用走同一条下载 + PackageInstaller 链路，
      * 但**不做** certSha256 比对：Android 本身就会拒绝签名不一致的覆盖安装，
      * 这里再挡一次，反而会在「将来换正式签名」时把用户卡在装不上的状态。
      */

@@ -7,7 +7,7 @@
 
 - 基于版本：Open Shelf v0.6.0，commit `1e187094b53607c6fd48ce3bd527714ff1f326e7`（2026-11-11）
 - 首次修改日期：**2026-11-14**
-- 现用名称：**TV Hub**（2026-11-14 更名）
+- 现用名称：**OpenAPK TV**（2026-11-14 由上游原名更名 `TV Hub`，2026-11-24 再更名为现名）
 - 依据：GPLv3 §5(a) 要求衍生作品带有显著的修改声明及相关日期
 
 ## 已做的修改
@@ -18,6 +18,10 @@
 - **2026-11-14：品牌更名为 `TV Hub`**。界面文案、启动画面、Manifest `android:label`、
   README 标题、APK 文件名约定与 User-Agent 中的自称均已替换；来源声明中仍保留上游
   名称 "Open Shelf"，以标明本作品的出处（§5(a)）
+- **2026-11-24：品牌再更名为 `OpenAPK TV`**（应用显示名 / `android:label` / 界面文案 /
+  横幅），并换上自制标识 `art/logo.svg`：猫耳电视轮廓 + 屏幕内的机器人头，
+  启动器图标与 TV 横幅随之重绘，不再使用上游图形素材。`applicationId` 仍为 `app.tvhub`，
+  包名未变，已装版本可直接覆盖升级
 - **`applicationId` / `namespace` / Kotlin package 由 `io.github.wingedpanther.openshelf`
   改为 `app.tvhub`**；主 Composable 由 `OpenShelf()` 改为 `TvHub()`；`rootProject.name`
   改为 `tv-hub`
@@ -46,11 +50,13 @@ README 的 Build 一节。
 ## 商标与安装标识
 
 "Open Shelf" 及其原始图标、横幅属于上游项目的标识。GPL-3.0 不授予商标权
-（GPLv3 §7(e)）。本项目以 `TV Hub` 作为自有名称，不宣称与上游存在官方关联。
+（GPLv3 §7(e)）。本项目以 `OpenAPK TV` 作为自有名称，不宣称与上游存在官方关联。
 
 因 `applicationId` 已变更，本项目 APK 与上游版本在系统里是**两个不同的应用**，
 可以同时安装；若此前安装过本项目的旧包（`io.github.wingedpanther.openshelf`），
 需手动卸载，新包不会覆盖它。
 
-当前版本仍沿用上游的图标与横幅素材，其中横幅图内嵌 "Open Shelf" 字样，
-属**待替换资产**；这不表示与上游存在关联，也不影响上述名称与许可证声明。
+应用图标与 TV 横幅自 2026-11-24 起为本项目自制（`art/logo.svg` + `art/generate_icons.py`
+可复现），不再包含上游名称或图形；这不表示与上游存在关联，也不影响上述名称与许可证声明。
+标识内的机器人头形取自 Android 机器人形象（Android 品牌资源，CC BY 3.0），仅用于说明
+这是一款 Android TV 应用，不暗示 Google 的任何背书或关联。

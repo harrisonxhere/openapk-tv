@@ -114,8 +114,6 @@ object C {
     val MeterCache get() = Color(0xFF8A7BD8)
     val MeterFree get() = Color(0xFF35C07A)
     val SwitchOn get() = Color(0xFF35C07A)
-
-    val mark: Int get() = if (dark) R.drawable.mark_dark else R.drawable.mark
 }
 
 /**
@@ -213,59 +211,71 @@ private fun ico(vararg parts: Pair<String, Boolean>): ImageVector = ImageVector.
     }
 }.build()
 
-/* 品牌标识的三段路径来自设计稿 Frame.svg（120×120 网格）：天线、屏幕内的 GitHub 猫、机身外框 */
-private const val LOGO_ANTENNA =
-        "M25.1001 10.3198C26.6491 8.64945 29.2597 8.55112 30.9302 10.1001L51.5552 " +
-        "29.2236C53.2255 30.7725 53.3233 33.3832 51.7749 35.0537C50.2259 36.7242 47.6153 " +
-        "36.8225 45.9448 35.2734L25.3198 16.1499C23.6494 14.6009 23.5511 11.9903 25.1001 " +
-        "10.3198ZM89.0698 10.1001C90.7403 8.55112 93.3509 8.64945 94.8999 10.3198C96.4489 " +
-        "11.9903 96.3505 14.6009 94.6802 16.1499L74.0552 35.2734C72.3847 36.8225 69.7741 " +
-        "36.7242 68.2251 35.0537C66.6767 33.3832 66.7745 30.7725 68.4448 29.2236L89.0698 " +
-        "10.1001Z"
+/* 品牌徽标：绿色渐变圆 + 白色描边电视 + 屏幕内机器人头（art/logo-badge.svg，1024 画布）。
+   这是**彩色**向量：圆用 Brush 渐变填充，其余为白色描边/实心，不给 Ico() 上 tint，
+   所以顶栏/启动页用 Brand() 渲染，而不是 Ico()。 */
+private const val LOGO_BADGE_DOT =
+        "M 37 512a475 475 0 1 0 950 0a475 475 0 1 0 -950 0 Z "
 
-private const val LOGO_CAT =
-        "M53.9254 94.5247C52.8249 94.525 51.9263 93.6362 51.9203 92.5357L51.9117 " +
-        "90.9798C42.19 93.1195 40.1394 86.8071 40.1394 86.8071C38.5493 82.7211 36.2585 " +
-        "81.6352 36.2585 81.6352C33.0883 79.4385 36.4987 79.4831 36.4987 79.4831C40.0046 " +
-        "79.731 41.8519 83.1277 41.8519 83.1277C44.9683 88.5327 50.0276 86.9707 52.0195 " +
-        "86.0682C52.3331 83.7823 53.2396 82.2228 54.2392 81.3377C46.4775 80.4451 38.319 " +
-        "77.4104 38.319 63.8632C38.319 60.0029 39.6837 56.8492 41.9205 54.3723C41.5579 " +
-        "53.4798 40.3623 49.8848 42.2586 45.0153C42.2586 45.0153 45.1937 44.0657 51.87 " +
-        "48.6401C54.721 47.8551 57.662 47.455 60.6166 47.45C63.5835 47.4624 66.5749 47.8541 " +
-        "69.368 48.6401C76.0393 44.0658 78.9696 45.0153 78.9696 45.0153C80.8708 49.8872 " +
-        "79.6752 53.4823 79.3126 54.3723C81.5519 56.8467 82.9092 60.0029 82.9092 " +
-        "63.8633C82.9092 77.4451 74.7334 80.4352 66.9547 81.3104C68.2067 82.4087 69.3239 " +
-        "84.5583 69.3239 87.8583C69.3239 89.9333 69.3206 91.4699 69.3169 92.5412C69.3131 " +
-        "93.6387 68.4173 94.523 67.3199 94.5233C61.1113 94.5247 60.0095 94.5233 53.9254 " +
-        "94.5247Z"
+private const val LOGO_BADGE_FRAME =
+        "M 324 365H700 A 97 97 0 0 1 797 462V648 A 97 97 0 0 1 700 745H324 A 97 97 0 0 1 227 " +
+        "648V462 A 97 97 0 0 1 324 365 Z "
 
-private const val LOGO_FRAME =
-        "M101.25 50.625C101.25 43.3763 95.3737 37.5 88.125 37.5H31.875C24.6263 37.5 18.75 " +
-        "43.3763 18.75 50.625V84.375C18.75 91.6237 24.6263 97.5 31.875 97.5H88.125C95.3737 " +
-        "97.5 101.25 91.6237 101.25 84.375V50.625ZM108.75 84.375C108.75 95.7659 99.5159 105 " +
-        "88.125 105H31.875C20.4841 105 11.25 95.7659 11.25 84.375V50.625C11.25 39.2341 " +
-        "20.4841 30 31.875 30H88.125C99.5159 30 108.75 39.2341 108.75 50.625V84.375Z"
+private const val LOGO_BADGE_FACE =
+        "M 618.054 477.003 C 625.323 481.164 627.848 490.44 623.695 497.721 L 600.484 538.411 " +
+        "C 642.927 565.064 672.678 610.375 677.924 663.315 C 678.81 672.25 671.804 680 662.84 " +
+        "680H361.16 C 352.196 680 345.19 672.25 346.076 663.315 C 351.092 612.699 378.509 " +
+        "569.057 418.002 542.028 L 392.727 497.721 C 388.574 490.44 391.099 481.164 398.368 " +
+        "477.003 C 405.637 472.842 414.897 475.372 419.051 482.654 L 444.486 527.241 C 465.17 " +
+        "518.055 488.029 512.965 512 512.965 C 533.634 512.965 554.362 517.111 573.402 524.672 " +
+        "L 597.372 482.654 C 601.525 475.372 610.785 472.842 618.054 477.003 Z M 443.786 " +
+        "596.483 C 435.414 596.483 428.627 603.281 428.627 611.668 C 428.627 620.054 435.414 " +
+        "626.853 443.786 626.853 C 452.159 626.853 458.945 620.054 458.945 611.668 C 458.945 " +
+        "603.281 452.159 596.483 443.786 596.483 Z M 580.216 596.483 C 571.844 596.483 565.057 " +
+        "603.281 565.057 611.668 C 565.057 620.054 571.844 626.853 580.216 626.853 C 588.588 " +
+        "626.853 595.374 620.054 595.374 611.668 C 595.374 603.281 588.588 596.483 580.216 " +
+        "596.483 Z "
+
+private const val LOGO_BADGE_EARS =
+        "M 664 253 L 561 354 M 361 253 L 464 354 "
 
 object Icons {
     /**
-     * 品牌标识：电视天线 + 机身 + 屏幕内的 GitHub 猫（设计稿 Frame.svg）。
-     * 猫在原稿里是 #6E6E6E，这里换成同色 + 0.56 的 fillAlpha —— Ico() 走单色 tint 时，
-     * 外框吃满主色、猫自动淡成一层灰，层次与原稿一致，深浅主题都成立。
+     * 品牌徽标：绿色渐变圆 + 白色电视 + 屏幕内机器人头（art/logo-badge.svg）。
+     * 这是**彩色**向量（圆是 Brush 渐变、其余为白），不能被 ColorFilter.tint 覆盖，
+     * 所以用 [Brand] 渲染；30dp 下圆形底比纯线条更醒目，深浅主题都成立。
      */
     val Logo = ImageVector.Builder(
-        defaultWidth = 30.dp, defaultHeight = 30.dp, viewportWidth = 120f, viewportHeight = 120f,
+        defaultWidth = 30.dp, defaultHeight = 30.dp, viewportWidth = 1024f, viewportHeight = 1024f,
     ).apply {
         addPath(
-            pathData = PathParser().parsePathString(LOGO_ANTENNA).toNodes(),
-            fill = SolidColor(Color.Black),
+            pathData = PathParser().parsePathString(LOGO_BADGE_DOT).toNodes(),
+            fill = Brush.linearGradient(
+                colorStops = arrayOf(
+                    0f to Color(0xFF51D66C),
+                    0.48f to Color(0xFF26C47E),
+                    1f to Color(0xFF167F91),
+                ),
+                start = Offset(37f, 37f),
+                end = Offset(987f, 987f),
+            ),
         )
         addPath(
-            pathData = PathParser().parsePathString(LOGO_CAT).toNodes(),
-            fill = SolidColor(Color.Black), fillAlpha = 0.56f,
+            pathData = PathParser().parsePathString(LOGO_BADGE_FRAME).toNodes(),
+            stroke = SolidColor(Color.White),
+            strokeLineWidth = 50f,
+            strokeLineJoin = StrokeJoin.Round,
         )
         addPath(
-            pathData = PathParser().parsePathString(LOGO_FRAME).toNodes(),
-            fill = SolidColor(Color.Black),
+            pathData = PathParser().parsePathString(LOGO_BADGE_FACE).toNodes(),
+            fill = SolidColor(Color.White),
+        )
+        addPath(
+            pathData = PathParser().parsePathString(LOGO_BADGE_EARS).toNodes(),
+            stroke = SolidColor(Color.White),
+            strokeLineWidth = 50f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round,
         )
     }.build()
     val Search = ico(
@@ -370,6 +380,12 @@ object Icons {
 @Composable
 fun Ico(v: ImageVector, size: Dp, color: Color, modifier: Modifier = Modifier) {
     Image(rememberVectorPainter(v), null, modifier.size(size), colorFilter = ColorFilter.tint(color))
+}
+
+/** 彩色品牌徽标：不走 tint，颜色由 [Icons.Logo] 自带（绿色渐变圆 + 白），深浅主题通用 */
+@Composable
+fun Brand(size: Dp, modifier: Modifier = Modifier) {
+    Image(rememberVectorPainter(Icons.Logo), null, modifier.size(size))
 }
 
 /* ============================================================

@@ -368,9 +368,9 @@ fun TvHub() {
 private fun Splash(modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Ico(Icons.Logo, 30.dp, C.Fg)
+            Brand(30.dp)
             Spacer(Modifier.width(10.dp))
-            T("TV Hub", 17.sp, weight = FontWeight.Bold, tight = true)
+            T(str(R.string.app_name), 17.sp, weight = FontWeight.Bold, tight = true)
         }
         Spacer(Modifier.height(18.dp))
         /* 进度条：按已读字节估算，低端电视冷启动时让用户知道没卡死 */
@@ -396,9 +396,9 @@ private fun BoxScope.TopBar(
     Box(Modifier.at(0, 4).width(1152.dp).height(48.dp)) {
         Row(Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically) {
             /* 品牌：线条描边电视图标 + 名称 */
-            Ico(Icons.Logo, 30.dp, if (C.dark) C.Fg else C.Fg)
+            Brand(30.dp)
             Spacer(Modifier.width(10.dp))
-            T("TV Hub", 17.sp, weight = FontWeight.Bold, tight = true)
+            T(str(R.string.app_name), 17.sp, weight = FontWeight.Bold, tight = true)
 
             Spacer(Modifier.width(36.dp))
 
@@ -2510,7 +2510,7 @@ private fun BoxScope.SettingsScreen(toast: (String) -> Unit, onBack: () -> Unit,
                 control = { Chev() },
                 onClick = { Device.clearCache(ctx); cacheTick++; toast(str(R.string.toast_cleared, Fmt.mb(cache))) },
             )
-            /* 自更新：索引里的 self 段就是 TV Hub 自己的最新 Release。
+            /* 自更新：索引里的 self 段就是 OpenAPK TV 自己的最新 Release。
                进度直接读 Installer.jobs（SnapshotStateMap，写入即触发重组），不需要另立状态。 */
             val selfRel = UpdateIndex.self
             val selfHasNew = selfRel != null && UpdateIndex.selfNewer()
