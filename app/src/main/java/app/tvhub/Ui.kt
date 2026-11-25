@@ -104,7 +104,13 @@ object C {
     val HiFg get() = c(0xFF0C0F15, 0xFFFFFFFF)
 
     val Ring get() = c(0xFFFFFFFF, 0xFF101620)
-    val Card get() = c(0xFF0B0E14, 0xFFFFFFFF)
+
+    /** 背景墙：深色是近黑，浅色是**压过一档**的冷灰（原 #E9EDF4 在暗房间整屏发白、刺眼）。
+        详情页的底部渐隐也用它，别再硬编码。 */
+    val Wall get() = c(0xFF06080B, 0xFFDCE2EC)
+
+    /** 卡片面：浅色不用纯白 —— 纯白 + 大屏就是一块背光板，留 2% 灰反而让卡沿更稳。 */
+    val Card get() = c(0xFF0B0E14, 0xFFF9FAFD)
 
     val BtnBg get() = c(0xF2F7FAFF, 0xFF101620)
     val BtnFg get() = c(0xFF0C0F15, 0xFFFFFFFF)
@@ -129,7 +135,7 @@ fun Panel(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Uni
 @Composable
 fun Wall(tints: List<Color>) {
     val d = C.dark
-    Box(Modifier.fillMaxSize().background(if (d) Color(0xFF06080B) else Color(0xFFE9EDF4))) {
+    Box(Modifier.fillMaxSize().background(C.Wall)) {
         Canvas(Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
@@ -150,7 +156,9 @@ fun Wall(tints: List<Color>) {
             drawRect(
                 Brush.verticalGradient(
                     if (d) listOf(Color(0x1F090B10), Color(0xA606080B))
-                    else listOf(Color(0x59FFFFFF), Color(0x2EE6ECF5)),
+                    /* 浅色这层是「顶部提亮」的白雾：原来 35% 白会把压暗过的墙面又提回去，
+                       减到 18% 才守得住整体明度，也只留一点柔光的方向感。 */
+                    else listOf(Color(0x2EFFFFFF), Color(0x1AE6ECF5)),
                 ),
             )
         }

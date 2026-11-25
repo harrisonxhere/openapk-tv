@@ -679,7 +679,7 @@ private fun BoxScope.HomeScreen(
         Modifier.at(0, 636).width(1152.dp).height(24.dp)
             .background(
                 Brush.verticalGradient(
-                    listOf(Color.Transparent, if (C.dark) Color(0xFF06080B) else Color(0xFFE9EDF4)),
+                    listOf(Color.Transparent, C.Wall),
                 ),
             ),
     )
