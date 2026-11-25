@@ -414,7 +414,7 @@ private fun BoxScope.TopBar(
     Box(Modifier.at(0, 4).width(1152.dp).height(48.dp)) {
         Row(Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically) {
             /* 品牌：线条描边电视图标 + 名称 */
-            Brand(30.dp)
+            Brand(36.dp)
             Spacer(Modifier.width(10.dp))
             T(str(R.string.app_name), 17.sp, weight = FontWeight.Bold, tight = true)
 

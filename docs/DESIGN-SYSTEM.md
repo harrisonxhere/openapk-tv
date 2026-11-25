@@ -279,7 +279,7 @@ fun Modifier.cardShadow(shape: Shape, radius: Dp = 20.dp): Modifier =
 | 位置 | 尺寸 | 为什么 |
 |---|---|---|
 | 启动页 `Splash` | `Brand(96.dp)` + 名字 38sp | 屏幕中央只有它，停留 1–2 秒，必须够重 |
-| 顶栏 `TopBar` | `Brand(30.dp)` + 名字 17sp | 常驻信息，旁边还有导航胶囊，抢空间就乱 |
+| 顶栏 `TopBar` | `Brand(36.dp)` + 名字 17sp | 常驻信息，得看得清轮廓；顶栏 48dp、胶囊 44dp，36 是上限，再大就顶到上下沿 |
 | TV 桌面 | `drawable-*/banner.png` | launcher 读 banner（320×180），不是 `ic_launcher` |
 
 banner 由 `art/generate_icons.py` 生成：图标高 **92/180 ≈ 51%**、左边距 26、文字上限 32。
