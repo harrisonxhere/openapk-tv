@@ -17,15 +17,16 @@ MainActivity.onCreate
                 └── 有数据 → DesignCanvas { Wall + TopBar + 当前视图 }
 ```
 
-`TvHub()` 就是全部路由。没有 Navigation 库，靠三个可空状态量决定盖哪一层：
+`TvHub()` 就是全部路由。没有 Navigation 库，靠几个状态量决定盖哪一层：
 
 | 状态 | 为 null 时 | 不为 null 时 |
 |---|---|---|
 | `detail: String?` | 显示当前 tab | 全屏覆盖 `DetailScreen`（最高优先级） |
 | `room: String?` | 分类页显示磁贴网格 | 在分类之上盖 `RoomScreen` |
+| `about: Boolean` | 正常显示设置页 | 在设置之上盖 `AboutScreen`（`tab` 仍是 Settings） |
 | `tab: Tab` | — | 决定 `HomeScreen` / `CatsScreen` / `MineScreen` / `SearchScreen` / `SettingsScreen` |
 
-`BackHandler` 的回退顺序：`detail` → `room` → 搜索词清空 → 回 `Tab.Discover` → 交给系统。
+`BackHandler` 的回退顺序：`about` → `detail` → `room` → 搜索词清空 → 回 `Tab.Discover` → 交给系统。
 
 ---
 
@@ -362,7 +363,7 @@ LaunchedEffect(handoff.pending, tab, room, detail) {
 
 | 没引入 | 原因 |
 |---|---|
-| Navigation Compose | 只有 7 个视图、3 层状态，`mutableStateOf` 足够；引入后焦点与返回栈更难控 |
+| Navigation Compose | 只有 8 个视图、3 层状态，`mutableStateOf` 足够；引入后焦点与返回栈更难控 |
 | ViewModel | 全部状态是短生命周期的 UI 状态，进程不做后台保活 |
 | Retrofit / OkHttp | 只需 GET 一个 JSON 和若干 APK，`HttpURLConnection` 够；减少 APK 体积与镜像依赖 |
 | Coil / Glide | 见 §3，需要自定义候选回退与解码失败判定 |

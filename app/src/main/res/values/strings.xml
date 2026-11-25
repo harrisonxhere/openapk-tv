@@ -189,9 +189,26 @@
     <string name="cache_value">%1$s · Clear</string>
     <string name="set_cache_help">Downloaded APK files are kept here so you can reinstall without downloading again. Press OK to clear them.</string>
     <string name="set_about">About</string>
-    <string name="about_value">OpenAPK TV %1$s</string>
-    <string name="about_help">An unofficial derivative of Open Shelf (wingedpanther), first modified 2026-11-14. Open source under GPL-3.0; see the project repository for the full notice and source. App names, art and releases come from each project’s GitHub repository.</string>
+    <string name="about_help">An independent modified build, first modified 2026-11-14. Open source under GPL-3.0; the full licence, source and notices are in the project repository. App names, artwork and release packages belong to their respective projects and are served from GitHub.</string>
     <string name="settings_footer">Version %1$s · %2$s apps</string>
+
+    <!-- About page (its own screen, reached from Settings) -->
+    <string name="about_tagline">A curated entry point for open-source TV apps</string>
+    <string name="about_cat">Catalogue</string>
+    <string name="about_cat_value">%1$s apps · %2$s categories</string>
+    <string name="about_build">Version</string>
+    <string name="about_build_value">v%1$s</string>
+    <string name="about_license">Licence</string>
+    <string name="about_license_value">GPL-3.0-only · source available</string>
+    <string name="about_source">Data source</string>
+    <string name="about_source_value">Each project’s GitHub Releases · refreshed daily</string>
+    <string name="about_repo">Repository</string>
+    <string name="about_repo_value">github.com/harrisonxhere/tv-hub</string>
+    <string name="about_repo_url">https://github.com/harrisonxhere/tv-hub</string>
+    <string name="about_device">Device</string>
+    <string name="about_device_value">%1$s · Android %2$s (API %3$d)</string>
+    <string name="about_credits">Icon and marks are original to this project. Typeface Geist (OFL-1.1). The robot head follows Android brand assets (CC BY 3.0) and only indicates that this is an Android app.</string>
+    <string name="about_no_browser">No browser available on this device</string>
 
     <!-- Download source (see Mirror.kt) -->
     <string name="set_mirror">Download source</string>
@@ -286,7 +303,7 @@
     <string name="toast_uptodate">Already on the latest version (v%1$s)</string>
     <string name="set_motion">Motion</string>
     <string name="set_motion_sub">Page and focus transitions</string>
-    <string name="set_about_sub">Open-source catalogue · %1$s apps</string>
+    <string name="set_about_sub">Version %1$s · GPL-3.0</string>
     <string name="set_reset">Restore defaults</string>
     <string name="set_reset_sub">Installed apps are kept</string>
     <string name="toast_sort_stars">Sorted by stars</string>
@@ -295,7 +312,6 @@
     <string name="toast_updated_all">Queued %1$d updates</string>
     <string name="toast_cleared">Cleared %1$s of cache</string>
     <string name="toast_checked">Already up to date</string>
-    <string name="toast_about">OpenAPK TV %1$s · open-source catalogue</string>
     <string name="toast_reset">Defaults restored</string>
     <string name="toast_lang">Language · %1$s</string>
     <string name="toast_queue">Download queue · demo</string>

@@ -402,7 +402,7 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
         ├─ 自动更新 ・ 仅 Wi-Fi      双栏
         ├─ 开机启动 ・ 语音搜索      双栏
         ├─ 清理缓存 ・ 检查更新      双栏（右侧 chevron）
-        ├─ 动效     ・ 关于          双栏
+        ├─ 动效     ・ 关于          双栏（关于进独立页，副标「版本 x · GPL-3.0」）
         └─ 恢复默认设置  54dp
 ```
 
@@ -425,6 +425,35 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 轨道 52×32、圆角 16；滑块关闭 16dp（左内边距 8）、开启 24dp（左 24），尺寸与位移 180ms 过渡。
 关闭态 = 透明轨道 + 2dp 描边 + 灰滑块（描边与滑块同色 `C.Fg3`），开启态 = 实心 `C.SwitchOn` 绿轨道 + 白滑块。
 聚焦时行底翻成 `HiBg`，关闭态的描边/滑块改用 `C.HiFg` 的半透明，保证白色行底和深色行底都看得见。
+
+## 8. 关于 `AboutScreen`
+
+设置页「关于」按 OK 进入的独立二级页（`about = true` 时盖在设置之上，`tab` 仍是 Settings，
+所以返回键回到设置，不用记来源）。无顶栏，`SubHead(关于, v1.0.0)` 在 (0,0)。
+
+```
+(0,96)   品牌块 h96：Brand(84) + 「OpenAPK TV」32sp + 一句话定位 12.5sp（Fg3）
+(0,216)  Column，间距 16，宽 1152，两栏各 567（间距 18），每格 92dp
+        ├─ 目录 2,923 款应用 · 13 个分类   ｜ 版本 v1.0.0
+        ├─ 许可 GPL-3.0-only · 源码公开     ｜ 数据来源 各项目 GitHub Releases · 每日采集
+        ├─ 项目仓库 github.com/… ›（唯一可点）｜ 设备 MODEL · Android 16 (API 36)
+(0,556)  许可与出处小字 10.5sp：衍生声明 3 行 + 致谢 3 行（C.Fg3 / 78%）
+```
+
+`InfoCell(label, value, modifier, requester, arrow, onClick)`：小标 10.5sp `Fg3` + 值 14sp 半粗，
+一格里只放一句话。**不描边**，与全站卡片同一套语言：深色靠 `RowBg` 填充差，浅色靠 `cardShadow`。
+只有传了 `onClick` 才包 `Focusable` —— 纯展示格子不进焦点链，否则方向键会在 4 个死格子里打转。
+
+- 整页唯一可聚焦的是「项目仓库」，进页后 `handoff.target` 直接落在它上面。
+- 点它是 `Intent.ACTION_VIEW` 打开 GitHub。**先 `queryIntentActivities` 再 `startActivity`**，
+  并排除 `com.android.tv.frameworkpackagestubs`（AOSP TV 固件里的 `BrowserStub` 也会响应
+  VIEW https，但打开只会说「您没有可执行此操作的应用」）。没有浏览器时用自家 toast
+  「设备上没有可用的浏览器」，不要让系统弹那句生硬的话。
+- 数字口径：目录总数 `Catalog.apps.size`（含被「隐藏串流」过滤掉的，与分类页磁贴一致），
+  分类数 = 全部应用 `group` 去重，与 `GROUP_KEYS + other` 对齐。
+- 许可声明（`about_help`）必须留在这个页面里：GPL 要求修改版携带「已修改 + 日期 + 许可」的提示。
+  **应用内不提上游项目名**（用户要求），完整归属声明只在仓库的 `NOTICE.md` / `README.md` 里，
+  两者受众不同：一个是用户打开就能看到的，一个是给分发方的。
 
 ## 分类体系：12 个一级组（数据层）
 

@@ -189,9 +189,26 @@
     <string name="cache_value">%1$s · 清除</string>
     <string name="set_cache_help">已下载的 APK 会保存在这里，重装时无需再次下载。按确认键清除。</string>
     <string name="set_about">关于</string>
-    <string name="about_value">OpenAPK TV %1$s</string>
-    <string name="about_help">本应用是基于 Open Shelf（wingedpanther）的非官方衍生版，2026-11-14 首次修改，依 GPL-3.0 开源，完整声明与源码见项目仓库。应用名称、图片和安装包来自各项目的 GitHub 仓库。</string>
+    <string name="about_help">本应用为独立修改版，2026-11-14 首次修改，依 GPL-3.0 开源，完整许可、源码与声明见项目仓库。应用名称、图片和安装包归各项目所有，均来自其 GitHub 仓库。</string>
     <string name="settings_footer">版本 %1$s · %2$s 款应用</string>
+
+    <!-- 关于页（独立页面，从设置进入） -->
+    <string name="about_tagline">GitHub 开源 TV 应用的策展式入口</string>
+    <string name="about_cat">目录</string>
+    <string name="about_cat_value">%1$s 款应用 · %2$s 个分类</string>
+    <string name="about_build">版本</string>
+    <string name="about_build_value">v%1$s</string>
+    <string name="about_license">许可</string>
+    <string name="about_license_value">GPL-3.0-only · 源码公开</string>
+    <string name="about_source">数据来源</string>
+    <string name="about_source_value">各项目 GitHub Releases · 每日采集</string>
+    <string name="about_repo">项目仓库</string>
+    <string name="about_repo_value">github.com/harrisonxhere/tv-hub</string>
+    <string name="about_repo_url">https://github.com/harrisonxhere/tv-hub</string>
+    <string name="about_device">设备</string>
+    <string name="about_device_value">%1$s · Android %2$s（API %3$d）</string>
+    <string name="about_credits">图标与标识为本项目自制；字体 Geist（OFL-1.1）；标识内的机器人头形取自 Android 品牌资源（CC BY 3.0），仅用于说明这是一款 Android 应用。</string>
+    <string name="about_no_browser">设备上没有可用的浏览器</string>
 
     <!-- 国内下载源（新增键，英文基准见 values/strings.xml） -->
     <string name="set_mirror">下载源</string>
@@ -285,7 +302,7 @@
     <string name="toast_uptodate">已是最新版本（v%1$s）</string>
     <string name="set_motion">界面动效</string>
     <string name="set_motion_sub">页面切换与焦点缩放动画</string>
-    <string name="set_about_sub">开源应用目录 · %1$s 款</string>
+    <string name="set_about_sub">版本 %1$s · GPL-3.0</string>
     <string name="set_reset">恢复默认设置</string>
     <string name="set_reset_sub">不影响已安装应用</string>
     <string name="toast_sort_stars">已按星标排序</string>
@@ -294,7 +311,6 @@
     <string name="toast_updated_all">已加入 %1$d 个更新任务</string>
     <string name="toast_cleared">已清理 %1$s 缓存</string>
     <string name="toast_checked">已是最新版本</string>
-    <string name="toast_about">OpenAPK TV %1$s · 开源应用目录</string>
     <string name="toast_reset">已恢复默认设置</string>
     <string name="toast_lang">界面语言 · %1$s</string>
     <string name="toast_queue">下载队列 · 演示</string>

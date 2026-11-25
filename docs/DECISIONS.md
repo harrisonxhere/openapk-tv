@@ -41,7 +41,7 @@ GPL 原文核实后的结论（决定了后面所有命名行为）：
 
 | 决策 | 理由 | 被否定的方案 |
 |---|---|---|
-| 不引入 Navigation / ViewModel / Room / Retrofit / Coil / Hilt | 7 个视图、5 个偏好键、2 类网络请求，全局 `object` 就是依赖图；加库会拉高 APK 体积与镜像可达性风险 | 标准分层架构（对这个体量是过度设计） |
+| 不引入 Navigation / ViewModel / Room / Retrofit / Coil / Hilt | 8 个视图、5 个偏好键、2 类网络请求，全局 `object` 就是依赖图；加库会拉高 APK 体积与镜像可达性风险 | 标准分层架构（对这个体量是过度设计） |
 | 用 `LocalDensity` 缩放实现设计坐标 | 1280×720 设计稿的像素值可直接写成 dp，比例在任意电视上一致 | `BoxWithConstraints` 里手动换算比例（每个视图都要乘系数，必错） |
 | 焦点环自己画（`Modifier.ring`） | TV Material 的 Border+Glow 在浅色白卡上糊成一片；自制可显式留 `gap` 间隔，深浅两主题都清晰 | 用 `Surface` 的 focused 状态 |
 | 语言切换不重建 Activity | `createConfigurationContext` 换 `Resources` + `rev++` 触发重绘，不闪屏、不丢状态 | `AppCompatDelegate.setApplicationLocales`（要引 appcompat）、`recreate()`（会白屏） |

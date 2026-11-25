@@ -2,8 +2,11 @@ package app.tvhub
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -173,6 +176,9 @@ fun TvHub() {
     var tab by remember { mutableStateOf(Tab.Discover) }
     var detail by remember { mutableStateOf<String?>(null) }
     var room by remember { mutableStateOf<String?>(null) }
+    /* 关于页是叠在设置之上的二级页：只从设置进入，返回时回到设置
+       （tab 不动，所以不需要像 room 那样记来源） */
+    var about by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var typing by remember { mutableStateOf(false) }
     var toast by remember { mutableStateOf<String?>(null) }
@@ -215,11 +221,13 @@ fun TvHub() {
     fun closeDetail() { detail = null; handoff.pending = true }
     fun openRoom(k: String) { room = k; handoff.pending = true }
     fun closeRoom() { room = null; handoff.pending = true }
+    fun closeAbout() { about = false; handoff.pending = true }
     /* 子页没有导航栏，返回一律回首页 */
     fun goHome() { tab = Tab.Discover; typing = false; handoff.pending = true }
 
     BackHandler {
         when {
+            about -> closeAbout()
             detail != null -> closeDetail()
             room != null -> closeRoom()
             tab == Tab.Search && query.isNotEmpty() -> { query = ""; handoff.pending = true }
@@ -264,8 +272,9 @@ fun TvHub() {
                     },
                 ) {
                     /* 一级页（发现 / 分类 / 我的应用）都有顶部导航；
-                       二级页（房间 / 详情 / 搜索 / 设置）无导航、左上返回 */
-                    val subPage = detail != null || room != null || tab == Tab.Search || tab == Tab.Settings
+                       二级页（房间 / 详情 / 搜索 / 设置 / 关于）无导航、左上返回 */
+                    val subPage = detail != null || room != null || about ||
+                        tab == Tab.Search || tab == Tab.Settings
                     if (!subPage) TopBar(
                         tab = tab,
                         deep = room != null,
@@ -283,6 +292,12 @@ fun TvHub() {
                     val app = notFound
                     val r = room
                     when {
+                        /* 关于页盖住设置页（tab 仍是 Settings），所以排在最前 */
+                        about -> AboutScreen(
+                            toast = { toast = it },
+                            onBack = { closeAbout() },
+                            handoff = handoff,
+                        )
                         app != null -> DetailScreen(
                             app = app,
                             onBack = { closeDetail() },
@@ -337,6 +352,7 @@ fun TvHub() {
                             )
                             Tab.Settings -> SettingsScreen(
                                 toast = { toast = it },
+                                onAbout = { about = true; handoff.pending = true },
                                 onBack = { tab = settingsFrom; handoff.pending = true },
                                 handoff = handoff,
                             )
@@ -349,11 +365,11 @@ fun TvHub() {
     }
 
     // 新视图的目标控件可能还没组合出来：等两拍再抢焦点（首帧的自动聚焦会先落在左上）
-    LaunchedEffect(handoff.pending, tab, room, detail) {
+    LaunchedEffect(handoff.pending, tab, room, detail, about) {
         if (!handoff.pending) return@LaunchedEffect
         /* 回首页先把货架滚回上次那一行：主推卡可能早已被 LazyColumn 回收，
            直接对 hero 抢焦点会失败，最后整页没有焦点 */
-        val home = tab == Tab.Discover && detail == null && room == null
+        val home = tab == Tab.Discover && detail == null && room == null && !about
         if (home) runCatching { homeList.scrollToItem(homeRow) }
         delay(120)
         val req = if (home && homeMemo == null) heroReq else handoff.target
@@ -2412,7 +2428,12 @@ private fun cadence(rels: List<Release>): String {
 
 /* ---------------- 设置 ---------------- */
 @Composable
-private fun BoxScope.SettingsScreen(toast: (String) -> Unit, onBack: () -> Unit, handoff: FocusHandoff) {
+private fun BoxScope.SettingsScreen(
+    toast: (String) -> Unit,
+    onAbout: () -> Unit,
+    onBack: () -> Unit,
+    handoff: FocusHandoff,
+) {
     val ctx = LocalContext.current
     val tick = Device.tick
     var cacheTick by remember { mutableIntStateOf(0) }
@@ -2550,10 +2571,10 @@ private fun BoxScope.SettingsScreen(toast: (String) -> Unit, onBack: () -> Unit,
             )
             SetRow(
                 title = str(R.string.set_about),
-                sub = str(R.string.set_about_sub, Fmt.count(Catalog.apps.size)),
+                sub = str(R.string.set_about_sub, version),
                 modifier = Modifier.weight(1f),
                 control = { Chev() },
-                onClick = { toast(str(R.string.toast_about, version)) },
+                onClick = onAbout,
             )
         }
         SetRow(
@@ -2570,6 +2591,144 @@ private fun BoxScope.SettingsScreen(toast: (String) -> Unit, onBack: () -> Unit,
         sub = str(R.string.settings_sub),
         onBack = onBack,
     )
+}
+
+/* ---------------- 关于 ---------------- */
+/** AOSP TV 固件里的浏览器桩：响应 VIEW https，但打开后只会说「没有浏览器」。 */
+private const val TV_BROWSER_STUB = "com.android.tv.frameworkpackagestubs"
+
+/**
+ * 独立的关于页（设置 → 关于）。二级页，页头与设置页同一套（左上返回胶囊 + 标题）。
+ *
+ * 三段纵向结构：品牌 masthead（96..192）→ 2×3 信息格（216..524）→ 许可与致谢小字（556..）。
+ * 信息格只放「一句话能说完、且用户会想确认」的东西：目录规模、版本、许可、上游、
+ * 仓库地址、设备 —— 太长的叙述交给底部小字，格子里塞满就变成一堵墙。
+ *
+ * 整页只有「项目仓库」可聚焦：电视上没有剪贴板，给一个入口直接调系统浏览器；
+ * 没装浏览器时 Intent 会抛 ActivityNotFoundException，转成 toast，不要静默失败。
+ */
+@Composable
+private fun BoxScope.AboutScreen(toast: (String) -> Unit, onBack: () -> Unit, handoff: FocusHandoff) {
+    val ctx = LocalContext.current
+    val version = remember {
+        runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: ""
+    }
+    val total = remember { Fmt.count(Catalog.apps.size) }
+    val cats = remember { Fmt.count(Catalog.apps.map { it.group }.distinct().size) }
+    val device = "${android.os.Build.MODEL} · Android ${android.os.Build.VERSION.RELEASE} " +
+        "(API ${android.os.Build.VERSION.SDK_INT})"
+
+    /* 品牌块：彩色标识必须走 Brand()，Ico() 的 tint 会把壳和笑脸染成同一个颜色 */
+    Row(
+        Modifier.at(0, 96).width(1152.dp).height(96.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Brand(84.dp)
+        Spacer(Modifier.width(22.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            T(str(R.string.app_name), 32.sp, weight = FontWeight.Bold, tight = true)
+            T(str(R.string.about_tagline), 12.5.sp, color = C.Fg3, maxLines = 1)
+        }
+    }
+
+    Column(Modifier.at(0, 216).width(1152.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            InfoCell(
+                str(R.string.about_cat), str(R.string.about_cat_value, total, cats),
+                Modifier.weight(1f),
+            )
+            InfoCell(
+                str(R.string.about_build), str(R.string.about_build_value, version),
+                Modifier.weight(1f),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            InfoCell(
+                str(R.string.about_license), str(R.string.about_license_value),
+                Modifier.weight(1f),
+            )
+            InfoCell(
+                str(R.string.about_source), str(R.string.about_source_value),
+                Modifier.weight(1f),
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            InfoCell(
+                str(R.string.about_repo), str(R.string.about_repo_value),
+                Modifier.weight(1f), requester = handoff.target, arrow = true,
+            ) {
+                /* 先问系统有没有浏览器再 startActivity：电视多半没装，
+                   直接 start 的话系统会先弹一句「您没有可执行此操作的应用」，
+                   语气生硬且不在我们的文案体系里。宁可自己先判断。
+                   Android TV 固件里有个 frameworkpackagestubs.BrowserStub 也会响应
+                   VIEW https（它就是个「我没有浏览器」的桩），要把它排除掉，
+                   否则判断永远为真、还是落到系统提示。 */
+                val view = Intent(Intent.ACTION_VIEW, Uri.parse(str(R.string.about_repo_url)))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val can = ctx.packageManager
+                    .queryIntentActivities(view, PackageManager.MATCH_DEFAULT_ONLY)
+                    .any { it.activityInfo.packageName != TV_BROWSER_STUB }
+                if (!can || runCatching { ctx.startActivity(view) }.isFailure) {
+                    toast(str(R.string.about_no_browser))
+                }
+            }
+            InfoCell(str(R.string.about_device), device, Modifier.weight(1f))
+        }
+    }
+
+    /* 许可与出处：这是 GPL 衍生版必须留在应用内的声明之一，别因为「小字不好看」删掉 */
+    Column(Modifier.at(0, 556).width(1152.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        T(str(R.string.about_help), 10.5.sp, color = C.Fg3, maxLines = 3)
+        T(str(R.string.about_credits), 10.5.sp, color = C.Fg3.copy(alpha = 0.78f), maxLines = 3)
+    }
+
+    SubHead(
+        title = str(R.string.set_about),
+        sub = str(R.string.about_build_value, version),
+        onBack = onBack,
+    )
+}
+
+/**
+ * 关于页的信息格：小标 + 值。不描边，与全站卡片同一套语言。
+ * 只有传了 [onClick] 才包 Focusable —— 纯展示格子不进焦点链，
+ * 否则用户按方向键会在几个死格子之间来回跳。
+ */
+@Composable
+private fun InfoCell(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    requester: FocusRequester? = null,
+    arrow: Boolean = false,
+    onClick: (() -> Unit)? = null,
+) {
+    val shape = RoundedCornerShape(16.dp)
+    val body: @Composable (Boolean) -> Unit = { f ->
+        Row(
+            Modifier.fillMaxWidth().height(92.dp).ring(f, 16.dp, 1.012f)
+                .background(if (f) C.HiBg else C.RowBg, shape)
+                .padding(horizontal = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                T(
+                    label, 10.5.sp,
+                    color = (if (f) C.HiFg else C.Fg3), weight = FontWeight.Medium, maxLines = 1,
+                )
+                T(
+                    value, 14.sp,
+                    color = if (f) C.HiFg else C.Fg, weight = FontWeight.SemiBold, maxLines = 1,
+                )
+            }
+            if (arrow) {
+                Spacer(Modifier.width(10.dp))
+                T("›", 15.sp, color = if (f) C.HiFg.copy(alpha = 0.6f) else C.Fg3)
+            }
+        }
+    }
+    if (onClick == null) Box(modifier) { body(false) }
+    else Focusable(onClick, modifier, requester) { f -> body(f) }
 }
 
 /**

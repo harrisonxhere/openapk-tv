@@ -17,7 +17,7 @@
   1. 全量简体中文化（`values-zh-rCN`）
   2. 国内下载源（`Mirror.kt`，GitHub 走公共代理，多候选逐个回退）
   3. 品牌更名换标（猫耳电视图标，`art/`）
-  4. **界面按 v8 设计稿整体重做**（7 个视图，Kotlin 里手写排版，不是 Leanback 模板）
+  4. **界面按 v8 设计稿整体重做**（8 个视图，Kotlin 里手写排版，不是 Leanback 模板）
 
 一句话定位：**不是通用应用市场，是「GitHub 开源 TV 应用」的策展式入口**，目录是静态快照，不做实时爬取。
 
@@ -26,8 +26,10 @@
 ## 2. 硬性约束（改之前必须知道）
 
 1. **许可证** GPL-3.0-only，不能换成 or-later / MIT / Apache。
-   `NOTICE.md`、`README.md` 顶部衍生声明、`about_help` 文案里的**来源声明必须保留**；
-   更名只允许改「自称」，不允许删掉「基于 Open Shelf」这句话。发 APK 必须同渠道给源码。
+   `NOTICE.md`、`README.md` 顶部衍生声明里的**来源声明必须保留**（GPL 要求随分发给出完整声明与源码）；
+   **应用界面内不点名上游**（用户 2026-11-25 要求），关于页只写「独立修改版 + 首次修改日期 + GPL-3.0 + 仓库地址」，
+   这条底线也不能删 —— GPL-3.0 §5(a) 要求修改版携带「已修改」与日期的提示。
+   更名只允许改「自称」，发 APK 必须同渠道给源码。
 2. **多语言** 任何用户可见文案必须走 `str(R.string.xxx)`。
    新增键要**同时**加两份：`app/src/main/res/values/strings.xml`（英文基准）+ `values-zh-rCN/strings.xml`（中文）。
    代码里出现中文字面量就是 bug。数据（应用描述）来自上游 catalog，是英文，属已知数据层缺口，不要假装已解决。
@@ -86,7 +88,7 @@ tv-hub/
 ├── docs/
 │   ├── ARCHITECTURE.md        ← 数据流、状态管理、安装链路
 │   ├── DESIGN-SYSTEM.md       ← 设计坐标系、颜色令牌、焦点环、图片渲染
-│   ├── SCREENS.md             ← 7 个视图逐个的坐标与结构
+│   ├── SCREENS.md             ← 8 个视图逐个的坐标与结构
 │   ├── BUILD-AND-TEST.md      ← 构建、模拟器、adb、截图、切语言
 │   ├── DECISIONS.md           ← 为什么长这样（v1→v9 决策与否定记录）
 │   ├── INTRO.md               ← 对外介绍（可直接当项目页正文）
@@ -102,10 +104,10 @@ tv-hub/
 
 | 文件 | 行数 | 职责 |
 |---|---|---|
-| `MainActivity.kt` | 34 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
-| `Data.kt` | 425 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
-| `Ui.kt` | 443 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
-| `Screens.kt` | 1956 | 根组合 `TvHub()` + `TopBar` + 7 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
+| `MainActivity.kt` | 58 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
+| `Data.kt` | 964 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
+| `Ui.kt` | 521 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
+| `Screens.kt` | 3453 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
 | `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
 | `Mirror.kt` | 34 | 把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链） |
 | `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 OpenAPK TV 自更新 |
@@ -121,8 +123,9 @@ tv-hub/
 | 搜索 | `SearchScreen` | 顶栏放大镜 / `Tab.Search` |
 | 详情 | `DetailScreen` | `detail != null`（任何卡片按 OK） |
 | 设置 | `SettingsScreen` | 顶栏齿轮 / `Tab.Settings` |
+| 关于 | `AboutScreen` | 设置页「关于」→ `about != null`，覆盖在设置之上 |
 
-状态全在 `TvHub()` 里用 `remember { mutableStateOf(...) }` 管：`tab`、`detail`、`room`、`chip`、`byDate`、`heroIdx`、`query`、`typing`、`toast`。**没有 ViewModel，没有导航库**——刻意保持单文件可读。
+状态全在 `TvHub()` 里用 `remember { mutableStateOf(...) }` 管：`tab`、`detail`、`room`、`about`、`chip`、`byDate`、`heroIdx`、`query`、`typing`、`toast`。**没有 ViewModel，没有导航库**——刻意保持单文件可读。
 
 ---
 
