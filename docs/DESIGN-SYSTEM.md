@@ -298,6 +298,11 @@ fun Modifier.cardShadow(shape: Shape, radius: Dp = 20.dp): Modifier =
 | TV 桌面 | `drawable-*/banner.png` | launcher 读 banner（320×180），不是 `ic_launcher` |
 
 banner 由 `art/generate_icons.py` 生成：图标高 **92/180 ≈ 51%**、左边距 26、文字上限 32。
+
+**导出件**：`art/logo-home-light.svg` / `art/logo-home-dark.svg` 是首页顶栏那一版的独立 SVG
+（620×542，两种主题各一份，颜色按上表烤死）。用于贴物料或给设计方，**不是渲染源** ——
+应用内仍走 `logoMark()`，改图形要回到 `art/logo-mark.svg` 再同步 `Ui.kt` 的路径常量。
+深色版把屏幕填成 `#06080B`（代码里是留空透出墙色），这样脱离暗底单独看也是完整的。
 图标不要给回 62%（旧值）：上下只剩 34px，launcher 圆角一切就缺角，在
 「已收藏的应用」那种小卡里也显得闷。改完必须重跑脚本，5 档密度一起换。
 
