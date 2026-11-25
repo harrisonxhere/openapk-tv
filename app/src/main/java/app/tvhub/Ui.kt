@@ -378,7 +378,7 @@ fun Ico(v: ImageVector, size: Dp, color: Color, modifier: Modifier = Modifier) {
 /** 彩色品牌标识：不走 tint，颜色由 [logoMark] 自带（绿色渐变脸 + 电视壳），壳色随主题变 */
 @Composable
 fun Brand(size: Dp, modifier: Modifier = Modifier) {
-    val v = remember(C.dark) { logoMark(if (C.dark) Color.White else Color(0xFF101620)) }
+    val v = remember(C.dark) { logoMark(if (C.dark) Color.White else Color(0xFF363B45)) }
     Image(rememberVectorPainter(v), null, modifier.size(size))
 }
 
