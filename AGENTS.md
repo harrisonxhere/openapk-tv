@@ -106,7 +106,7 @@ tv-hub/
 |---|---|---|
 | `MainActivity.kt` | 58 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
 | `Data.kt` | 996 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
-| `Ui.kt` | 531 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
+| `Ui.kt` | 552 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
 | `Screens.kt` | 3556 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
 | `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
 | `Mirror.kt` | 67 | 下载源三档（自动 / 直连 / 镜像）+ 系统语言判定：把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链），自动档只在简中系统走镜像 |
@@ -207,7 +207,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 8. **详情页横幅高度**：左列 `fillMaxHeight()`，横幅 `weight(1f)`，`590dp = 720 - 30(下边距) - 70(起始偏移)`。改这两处数字要同步，否则底部留死白或溢出。
 9. **`Fmt.gbNum()` 返回纯数字**，单位在字符串资源里拼。之前用 `gb().substringBefore(" GB")` 依赖英文字面量，切中文就崩。
 10. **热词 / 时段是 `<string-array>`**（`hot_words`、`recent_times`），不是 Kotlin 常量。
-11. **品牌标识有两份，别搞混**：顶栏/启动页走 `Ui.kt` 的 `logoMark(shell)`（真源 `art/logo-mark.svg`，白电视壳 + 绿渐变笑脸，620×542），是**彩色**向量，必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把壳和脸染成同一个颜色，直接看不见。另外**壳色随主题**：深色白壳、浅色 `#363B45`，写死白色的话浅色主题下电视轮廓会消失（实测）。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`（仍是带绿圆底的旧徽标）。改应用内标识只动前者，改桌面图标才动后者。
+11. **品牌标识有两份，别搞混**：顶栏/启动页走 `Ui.kt` 的 `logoMark(shell, screen)`（真源 `art/logo-mark.svg`，白电视壳 + 绿渐变笑脸，620×542），是**彩色**向量，必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把壳和脸染成同一个颜色，直接看不见。另外**颜色随主题**，是两层：深色白壳、屏幕留空；浅色壳 `#363B45` + 屏幕填 `#0B1017`。浅色只换壳色不够 —— 屏幕透出墙色时绿脸浮在浅灰上，整枚像线框图标，压不住 17sp 粗体字标（实拍对比过）。屏幕矩形必须与壳的镂空同形（`LOGO_SCREEN`），差一单位就露白边。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`（仍是带绿圆底的旧徽标）。改应用内标识只动前者，改桌面图标才动后者。
 12. **应用首次冷启动要 ~20s** 读 3.3MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
@@ -215,7 +215,8 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 16. **改了 App/AppArt/Apk/Release 字段必须 BinCache.FORMAT +1**：二进制缓存格式升级时，必须把 `BinCache.FORMAT` 常量加 1，否则已缓存的旧格式文件会被误读，导致数据错乱或崩溃。
 17. **判断系统语言不能用 `Locale.getDefault()`**：`L.apply()` 会把它改成 App 内语言；而且系统语言变化时
     Activity 重建、进程通常还活着，读到的仍是上一次的值。要读 `Resources.getSystem().configuration.locales[0]`。
-18. **Dialog 不要盖在启动页上**：主窗口还没拿到焦点时再叠一个 Dialog 窗口，输入事件无处可去，
+18. **`DesignCanvas` 的底色要跟主题**：它是启动页唯一的背景（启动分支没有 `Wall()`），原来写死 `#06080B`，浅色主题下会先黑一下再变亮，深灰壳的 logo 贴在近黑底上也等于没有轮廓。现在 `if (C.dark) #06080B else C.Wall`。
+19. **Dialog 不要盖在启动页上**：主窗口还没拿到焦点时再叠一个 Dialog 窗口，输入事件无处可去，
     实测直接 ANR（`Input dispatching timed out, no focused window`）。`MirrorAskDialog` 必须等
     `Catalog.apps` 非空之后再弹；这也是它排在 `if (Catalog.apps.isEmpty()) return` 之后的原因。
 

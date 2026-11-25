@@ -73,7 +73,12 @@ import kotlin.math.min
    ============================================================ */
 @Composable
 fun DesignCanvas(content: @Composable BoxScope.() -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF06080B)), contentAlignment = Alignment.Center) {
+    /* 底色跟主题走：启动页没有 Wall() 盖着，写死 #06080B 的话浅色主题会先黑一下再变亮，
+       而且深灰壳的 logo 贴在近黑底上等于没有轮廓（实拍确认）。 */
+    BoxWithConstraints(
+        Modifier.fillMaxSize().background(if (C.dark) Color(0xFF06080B) else C.Wall),
+        contentAlignment = Alignment.Center,
+    ) {
         val d = LocalDensity.current
         val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)
         CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
@@ -247,11 +252,22 @@ private const val LOGO_SHELL =
         "162C82.2356 162 50.0002 194.236 50 234V420C50 459.764 82.2355 492 122 492H498C537.765 492 570 459.764 " +
         "570 420V234C570 194.236 537.764 162 498 162H122Z"
 
-/** 壳色随主题：[C.dark] 下白壳压暗底，浅色下换深壳 —— 否则白壳贴浅灰墙等于没有轮廓 */
-private fun logoMark(shell: Color): ImageVector = ImageVector.Builder(
+/** 屏幕区（与壳的镂空完全同形：x 50..570 / y 162..492，r 50），浅色主题下填深色当「屏」 */
+private const val LOGO_SCREEN =
+    "M100 162H520A50 50 0 0 1 570 212V442A50 50 0 0 1 520 492H100" +
+        "A50 50 0 0 1 50 442V212A50 50 0 0 1 100 162Z"
+
+/** 壳色与屏幕随主题：[C.dark] 下白壳压在近黑底上，屏幕留空即可（墙就是黑的）；
+    浅色下白壳贴浅灰墙等于没有轮廓，所以换深壳 + 给屏幕填一块更深的底 ——
+    不填的话绿脸浮在浅灰上，整枚看着像线框图标，压不住旁边 17sp 的粗体字标（实拍对比过）。 */
+private fun logoMark(shell: Color, screen: Color?): ImageVector = ImageVector.Builder(
     defaultWidth = 30.dp, defaultHeight = 26.2.dp, viewportWidth = 620f, viewportHeight = 542f,
 ).apply {
-    /* 顺序同 svg：先脸后壳（壳的屏幕区域是镂空的，靠 NonZero 反向子路径透出脸） */
+    /* 顺序同 svg：屏底 → 脸 → 壳（壳的屏幕区域是镂空的，靠 NonZero 反向子路径透出前两层） */
+    if (screen != null) addPath(
+        pathData = PathParser().parsePathString(LOGO_SCREEN).toNodes(),
+        fill = SolidColor(screen),
+    )
     addPath(
         pathData = PathParser().parsePathString(LOGO_FACE).toNodes(),
         fill = Brush.linearGradient(
@@ -375,10 +391,15 @@ fun Ico(v: ImageVector, size: Dp, color: Color, modifier: Modifier = Modifier) {
     Image(rememberVectorPainter(v), null, modifier.size(size), colorFilter = ColorFilter.tint(color))
 }
 
-/** 彩色品牌标识：不走 tint，颜色由 [logoMark] 自带（绿色渐变脸 + 电视壳），壳色随主题变 */
+/** 彩色品牌标识：不走 tint，颜色由 [logoMark] 自带（绿色渐变脸 + 电视壳），壳与屏幕底色随主题变 */
 @Composable
 fun Brand(size: Dp, modifier: Modifier = Modifier) {
-    val v = remember(C.dark) { logoMark(if (C.dark) Color.White else Color(0xFF363B45)) }
+    val v = remember(C.dark) {
+        logoMark(
+            shell = if (C.dark) Color.White else Color(0xFF363B45),
+            screen = if (C.dark) null else Color(0xFF0B1017),
+        )
+    }
     Image(rememberVectorPainter(v), null, modifier.size(size))
 }
 
