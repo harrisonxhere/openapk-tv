@@ -211,73 +211,56 @@ private fun ico(vararg parts: Pair<String, Boolean>): ImageVector = ImageVector.
     }
 }.build()
 
-/* 品牌徽标：绿色渐变圆 + 白色描边电视 + 屏幕内机器人头（art/logo-badge.svg，1024 画布）。
-   这是**彩色**向量：圆用 Brush 渐变填充，其余为白色描边/实心，不给 Ico() 上 tint，
-   所以顶栏/启动页用 Brand() 渲染，而不是 Ico()。 */
-private const val LOGO_BADGE_DOT =
-        "M 37 512a475 475 0 1 0 950 0a475 475 0 1 0 -950 0 Z "
+/* 品牌标识（应用内）：白色电视壳 + 屏内绿色渐变笑脸（art/logo-mark.svg，620×542 画布）。
+   这是**彩色**向量：脸用 Brush 渐变、壳是实心，不给 Ico() 上 tint，所以顶栏/启动页用 Brand()。
+   和桌面 launcher / banner 用的 art/logo-badge.svg（绿圆 + 白电视）是两份真源：
+   这一份去掉了圆底，小尺寸下轮廓更干净，但白壳在浅色主题会直接消失 —— 所以壳色跟主题走。 */
+private const val LOGO_FACE =
+        "M416.054 249.004C423.323 253.165 425.848 262.44 421.695 269.722L398.484 310.411C440.927 337.065 470.678 " +
+        "382.375 475.924 435.315C476.81 444.251 469.804 452 460.84 452H159.16C150.196 452 143.19 444.251 144.076 " +
+        "435.315C149.092 384.699 176.509 341.057 216.002 314.028L190.727 269.722C186.574 262.44 189.099 253.165 " +
+        "196.368 249.004C203.637 244.843 212.897 247.373 217.051 254.654L242.486 299.242C263.17 290.055 286.029 " +
+        "284.965 310 284.965C331.634 284.965 352.362 289.111 371.402 296.672L395.372 254.654C399.525 247.373 " +
+        "408.785 244.843 416.054 249.004ZM241.786 368.483C233.414 368.483 226.627 375.281 226.627 383.668C226.627 " +
+        "392.054 233.414 398.853 241.786 398.853C250.159 398.853 256.945 392.054 256.945 383.668C256.945 375.281 " +
+        "250.159 368.483 241.786 368.483ZM378.216 368.483C369.844 368.483 363.057 375.281 363.057 383.668C363.057 " +
+        "392.054 369.844 398.853 378.216 398.853C386.588 398.853 393.374 392.054 393.374 383.668C393.374 375.281 " +
+        "386.588 368.483 378.216 368.483Z"
 
-private const val LOGO_BADGE_FRAME =
-        "M 324 365H700 A 97 97 0 0 1 797 462V648 A 97 97 0 0 1 700 745H324 A 97 97 0 0 1 227 " +
-        "648V462 A 97 97 0 0 1 324 365 Z "
+private const val LOGO_SHELL =
+        "M444.496 7.14941C454.354 -2.51718 470.184 -2.36199 479.851 7.49609C489.517 17.3544 489.362 33.1836 " +
+        "479.504 42.8506L408.985 112H498C565.379 112 620 166.621 620 234V420C620 486.852 566.229 541.146 499.577 " +
+        "541.99L498 542H122L120.423 541.99C54.2959 541.152 0.847538 487.704 0.00976562 421.577L0 " +
+        "420V234C0.000197918 166.621 54.6214 112 122 112H212.015L141.496 42.8506C131.638 33.1836 131.483 17.3544 " +
+        "141.149 7.49609C150.816 -2.36199 166.646 -2.51718 176.504 7.14941L279.504 108.149C280.724 109.346 " +
+        "281.796 110.638 282.719 112H338.281C339.204 110.638 340.276 109.346 341.496 108.149L444.496 7.14941ZM122 " +
+        "162C82.2356 162 50.0002 194.236 50 234V420C50 459.764 82.2355 492 122 492H498C537.765 492 570 459.764 " +
+        "570 420V234C570 194.236 537.764 162 498 162H122Z"
 
-private const val LOGO_BADGE_FACE =
-        "M 618.054 477.003 C 625.323 481.164 627.848 490.44 623.695 497.721 L 600.484 538.411 " +
-        "C 642.927 565.064 672.678 610.375 677.924 663.315 C 678.81 672.25 671.804 680 662.84 " +
-        "680H361.16 C 352.196 680 345.19 672.25 346.076 663.315 C 351.092 612.699 378.509 " +
-        "569.057 418.002 542.028 L 392.727 497.721 C 388.574 490.44 391.099 481.164 398.368 " +
-        "477.003 C 405.637 472.842 414.897 475.372 419.051 482.654 L 444.486 527.241 C 465.17 " +
-        "518.055 488.029 512.965 512 512.965 C 533.634 512.965 554.362 517.111 573.402 524.672 " +
-        "L 597.372 482.654 C 601.525 475.372 610.785 472.842 618.054 477.003 Z M 443.786 " +
-        "596.483 C 435.414 596.483 428.627 603.281 428.627 611.668 C 428.627 620.054 435.414 " +
-        "626.853 443.786 626.853 C 452.159 626.853 458.945 620.054 458.945 611.668 C 458.945 " +
-        "603.281 452.159 596.483 443.786 596.483 Z M 580.216 596.483 C 571.844 596.483 565.057 " +
-        "603.281 565.057 611.668 C 565.057 620.054 571.844 626.853 580.216 626.853 C 588.588 " +
-        "626.853 595.374 620.054 595.374 611.668 C 595.374 603.281 588.588 596.483 580.216 " +
-        "596.483 Z "
-
-private const val LOGO_BADGE_EARS =
-        "M 664 253 L 561 354 M 361 253 L 464 354 "
+/** 壳色随主题：[C.dark] 下白壳压暗底，浅色下换深壳 —— 否则白壳贴浅灰墙等于没有轮廓 */
+private fun logoMark(shell: Color): ImageVector = ImageVector.Builder(
+    defaultWidth = 30.dp, defaultHeight = 26.2.dp, viewportWidth = 620f, viewportHeight = 542f,
+).apply {
+    /* 顺序同 svg：先脸后壳（壳的屏幕区域是镂空的，靠 NonZero 反向子路径透出脸） */
+    addPath(
+        pathData = PathParser().parsePathString(LOGO_FACE).toNodes(),
+        fill = Brush.linearGradient(
+            colorStops = arrayOf(
+                0f to Color(0xFF9BEA67),
+                0.48f to Color(0xFF5BD05C),
+                1f to Color(0xFF16A879),
+            ),
+            start = Offset(153.5f, 255.1f),
+            end = Offset(320.4f, 532f),
+        ),
+    )
+    addPath(
+        pathData = PathParser().parsePathString(LOGO_SHELL).toNodes(),
+        fill = SolidColor(shell),
+    )
+}.build()
 
 object Icons {
-    /**
-     * 品牌徽标：绿色渐变圆 + 白色电视 + 屏幕内机器人头（art/logo-badge.svg）。
-     * 这是**彩色**向量（圆是 Brush 渐变、其余为白），不能被 ColorFilter.tint 覆盖，
-     * 所以用 [Brand] 渲染；30dp 下圆形底比纯线条更醒目，深浅主题都成立。
-     */
-    val Logo = ImageVector.Builder(
-        defaultWidth = 30.dp, defaultHeight = 30.dp, viewportWidth = 1024f, viewportHeight = 1024f,
-    ).apply {
-        addPath(
-            pathData = PathParser().parsePathString(LOGO_BADGE_DOT).toNodes(),
-            fill = Brush.linearGradient(
-                colorStops = arrayOf(
-                    0f to Color(0xFF51D66C),
-                    0.48f to Color(0xFF26C47E),
-                    1f to Color(0xFF167F91),
-                ),
-                start = Offset(37f, 37f),
-                end = Offset(987f, 987f),
-            ),
-        )
-        addPath(
-            pathData = PathParser().parsePathString(LOGO_BADGE_FRAME).toNodes(),
-            stroke = SolidColor(Color.White),
-            strokeLineWidth = 50f,
-            strokeLineJoin = StrokeJoin.Round,
-        )
-        addPath(
-            pathData = PathParser().parsePathString(LOGO_BADGE_FACE).toNodes(),
-            fill = SolidColor(Color.White),
-        )
-        addPath(
-            pathData = PathParser().parsePathString(LOGO_BADGE_EARS).toNodes(),
-            stroke = SolidColor(Color.White),
-            strokeLineWidth = 50f,
-            strokeLineCap = StrokeCap.Round,
-            strokeLineJoin = StrokeJoin.Round,
-        )
-    }.build()
     val Search = ico(
         "M11 4a7 7 0 1 1 0 14a7 7 0 1 1 0-14z" to false,
         "M16.6 16.6 21 21" to false,
@@ -382,10 +365,11 @@ fun Ico(v: ImageVector, size: Dp, color: Color, modifier: Modifier = Modifier) {
     Image(rememberVectorPainter(v), null, modifier.size(size), colorFilter = ColorFilter.tint(color))
 }
 
-/** 彩色品牌徽标：不走 tint，颜色由 [Icons.Logo] 自带（绿色渐变圆 + 白），深浅主题通用 */
+/** 彩色品牌标识：不走 tint，颜色由 [logoMark] 自带（绿色渐变脸 + 电视壳），壳色随主题变 */
 @Composable
 fun Brand(size: Dp, modifier: Modifier = Modifier) {
-    Image(rememberVectorPainter(Icons.Logo), null, modifier.size(size))
+    val v = remember(C.dark) { logoMark(if (C.dark) Color.White else Color(0xFF101620)) }
+    Image(rememberVectorPainter(v), null, modifier.size(size))
 }
 
 /* ============================================================

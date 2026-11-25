@@ -77,7 +77,8 @@ tv-hub/
 │       └── res/values{,-zh-rCN}/strings.xml
 ├── art/                       ← 品牌标识（设计真源）
 │   ├── logo.svg               ← 应用图标/横幅的真源：猫耳电视 + 屏幕内机器人头（1024 画布）
-│   ├── logo-badge.svg         ← 顶栏/启动页徽标真源：绿色渐变圆底 + 白色电视（1024 画布）
+│   ├── logo-mark.svg          ← 顶栏/启动页真源：白色电视轮廓 + 绿色渐变笑脸（620×542，无圆底）
+│   ├── logo-badge.svg         ← 旧徽标（绿渐变圆底 + 白电视），已不在应用内使用，留档
 │   ├── generate_icons.py      ← 由 logo-1024.png 生成 5 档启动器图标 + 5 档 TV 横幅
 │   └── source/                ← logo-1024.png（logo.svg 的 Chrome 渲染产物）+ 原始 svg 备份
 ├── .github/workflows/updates.yml  ← 每日抓取应用更新 → data/updates/ + updates release
@@ -203,7 +204,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 8. **详情页横幅高度**：左列 `fillMaxHeight()`，横幅 `weight(1f)`，`590dp = 720 - 30(下边距) - 70(起始偏移)`。改这两处数字要同步，否则底部留死白或溢出。
 9. **`Fmt.gbNum()` 返回纯数字**，单位在字符串资源里拼。之前用 `gb().substringBefore(" GB")` 依赖英文字面量，切中文就崩。
 10. **热词 / 时段是 `<string-array>`**（`hot_words`、`recent_times`），不是 Kotlin 常量。
-11. **品牌标识有两份，别搞混**：顶栏/启动页的 `Icons.Logo` 来自 `art/logo-badge.svg`，是**彩色**向量（绿渐变圆 + 白描边），必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把圆和内部图形染成同一个颜色，直接看不见。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`。改徽标只动前者，改应用图标才动后者。
+11. **品牌标识有两份，别搞混**：顶栏/启动页走 `Ui.kt` 的 `logoMark(shell)`（真源 `art/logo-mark.svg`，白电视壳 + 绿渐变笑脸，620×542），是**彩色**向量，必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把壳和脸染成同一个颜色，直接看不见。另外**壳色随主题**：深色白壳、浅色 `#101620`，写死白色的话浅色主题下电视轮廓会消失（实测）。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`（仍是带绿圆底的旧徽标）。改应用内标识只动前者，改桌面图标才动后者。
 12. **应用首次冷启动要 ~20s** 读 3.3MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
