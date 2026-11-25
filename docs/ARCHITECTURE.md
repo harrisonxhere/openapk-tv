@@ -75,8 +75,27 @@ MainActivity.onCreate
 
 - `Device`：用 `PackageManager` 拿已安装应用的 `versionCode` / `versionName` / 签名集合，
   以及 `StatFs` 的存储占用。没有持久化，每次组合时查。
-- `Prefs`：`SharedPreferences("prefs")`，6 个键 —— `accent`、`theme`、`lang`、`hideStreams`、`mirrorAuto`
-  以及（隐含）无。全部用 `mutableStateOf` 暴露，改值即重绘。
+- `Prefs`：`SharedPreferences("prefs")`，键 —— `accent`、`theme`、`lang`、`hideStreams`、`source`、
+  `sysLang`、`heroCursor` / `heroDay`。全部用 `mutableStateOf` 暴露，改值即重绘。
+  旧版的 `mirrorAuto`（布尔）在 `init` 里一次性迁到 `source` 三档，之后不再读写。
+
+### 2.4 下载源（自动 / 直连 / 国内镜像）
+
+`Prefs.source` 三档，`Mirror.usingMirror()` 是唯一判据：
+
+| `source` | 行为 |
+|---|---|
+| 0 自动（默认） | 系统语言是简体中文 → 镜像；其它语言 → 直连 GitHub |
+| 1 直连 | 永远只给原链 |
+| 2 国内镜像 | 永远先镜像，失败回退原链 |
+
+「系统语言」取 `Resources.getSystem().configuration.locales[0]`，**不是** `Locale.getDefault()` ——
+后者被 `L.apply()` 改成了 App 内语言，而且语言变化时 Activity 重建、进程通常还活着，读到的会是旧值。
+
+系统语言一改，Activity 必然重建（manifest 的 `configChanges` 不含 `locale`），所以
+`Prefs.noteSystemLanguage()` 只要在 `onCreate` 里比一次「上次见到的语言」：从非简中变成简中、
+且当前没走镜像时，置起 `Prefs.askMirror`，由 `MirrorAskDialog` 问一次。首次安装不弹（没有上一条记录）。
+
 
 ---
 
@@ -129,7 +148,7 @@ UI 上给的是解释 + 手动卸载引导，不是错误红字。
 
 1. 目标文件 `Device.cacheDir / "<id>-<version>-<abi>.apk"`。**已存在且长度等于 `apk.size` 直接跳过**（支持断点续装的假象，实际是全文件校验）。
 2. 候选列表来自 `Mirror.candidates(url)`：`gh-proxy.com` → `ghproxy.net` → 原链。
-   关了 `Prefs.mirrorAuto` 就只剩原链。
+   自动档在非中文系统下、或手动选了「直连」，就只剩原链（见 2.4）。
 3. 每个候选写 `.part`，**失败必删 `.part`**（半截文件绝不能交给下一个候选或 `PackageInstaller`）。
 4. 成功后 `renameTo` 正式文件名。
 
@@ -367,7 +386,7 @@ LaunchedEffect(handoff.pending, tab, room, detail) {
 | ViewModel | 全部状态是短生命周期的 UI 状态，进程不做后台保活 |
 | Retrofit / OkHttp | 只需 GET 一个 JSON 和若干 APK，`HttpURLConnection` 够；减少 APK 体积与镜像依赖 |
 | Coil / Glide | 见 §3，需要自定义候选回退与解码失败判定 |
-| Room / DataStore | 偏好只有 5 个键，`SharedPreferences` 够 |
+| Room / DataStore | 偏好只有 8 个键，`SharedPreferences` 够 |
 | Hilt / Koin | 6 个文件，全局 `object` 就是依赖图 |
 
 **新增依赖前先想清楚**：这个项目的卖点是「装在 32 位 Android 9 电视盒上也能跑、国内网络能下载」，

@@ -210,11 +210,22 @@
     <string name="about_credits">图标与标识为本项目自制；字体 Geist（OFL-1.1）；标识内的机器人头形取自 Android 品牌资源（CC BY 3.0），仅用于说明这是一款 Android 应用。</string>
     <string name="about_no_browser">设备上没有可用的浏览器</string>
 
-    <!-- 国内下载源（新增键，英文基准见 values/strings.xml） -->
+    <!-- 下载源（三档，见 Mirror.kt） -->
     <string name="set_mirror">下载源</string>
-    <string name="mirror_auto">国内镜像优先</string>
-    <string name="mirror_direct">直连 GitHub</string>
-    <string name="set_mirror_help">选择封面图片与安装包的下载来源。开启时先尝试国内镜像，失败自动回退到 GitHub 原链；公共镜像下载大型安装包可能较慢。无论走哪条链路，APK 签名校验都不会跳过。</string>
+    <string name="source_auto">自动</string>
+    <string name="source_github">GitHub</string>
+    <string name="source_mirror">国内镜像</string>
+    <string name="src_direct">直连 GitHub</string>
+    <string name="src_mirror">走国内镜像</string>
+    <string name="set_source_auto_sub">自动 · 当前%1$s</string>
+    <string name="set_source_github_sub">始终直连 GitHub，不经代理</string>
+    <string name="set_source_mirror_sub">始终走国内镜像，失败回退 GitHub</string>
+    <string name="ask_mirror_title">改用国内镜像？</string>
+    <string name="ask_mirror_body">系统语言已切换为简体中文。在中国大陆网络下，GitHub 常常连不上，或者只有几十 KB/s。要把封面与安装包的下载源换成国内镜像吗？</string>
+    <string name="ask_mirror_note">直连地址仍作回退，APK 签名校验不受影响。</string>
+    <string name="ask_mirror_yes">改为国内镜像</string>
+    <string name="ask_mirror_no">保持直连</string>
+    <string name="toast_source">下载源：%1$s</string>
     <string name="err_download_all">所有下载源均失败，请检查网络后重试。</string>
 
     <!-- v8 玻璃浮层设计 -->

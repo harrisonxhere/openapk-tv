@@ -185,12 +185,14 @@ fun T(
     maxLines: Int = Int.MAX_VALUE,
     tight: Boolean = false,
     align: TextAlign = TextAlign.Unspecified,
+    /** 行高倍数（默认 1.3）。多行正文段落用 1.5–1.6 更透气 */
+    line: Float = 1.3f,
 ) {
     BasicText(
         text, modifier,
         style = TextStyle(
             fontFamily = Geist, fontSize = size, color = color, fontWeight = weight,
-            letterSpacing = if (tight) (-0.025).em else 0.em, lineHeight = size * 1.3f,
+            letterSpacing = if (tight) (-0.025).em else 0.em, lineHeight = size * line,
             textAlign = align,
         ),
         maxLines = maxLines, overflow = TextOverflow.Ellipsis,

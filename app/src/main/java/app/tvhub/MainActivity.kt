@@ -14,6 +14,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Prefs 先起来，L 才知道该用哪种语言
         Prefs.init(this)
+        /* 系统语言改过的话，Activity 会重建后走到这里：刚切成简体中文就问一次要不要换国内源。
+           必须在 L.init 之前 —— 它会把进程默认 Locale 改成 App 内语言，之后就分不清系统语言了。 */
+        Prefs.noteSystemLanguage()
         L.init(this)
         Images.init(this)
         UpdateIndex.init(this)

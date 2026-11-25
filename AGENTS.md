@@ -15,7 +15,7 @@
 - 上游：[wingedpanther/openshelf](https://github.com/wingedpanther/openshelf) commit `1e18709`，**GPL-3.0-only**
 - 本项目是**非官方衍生版**，首次修改 2026-11-14。相对上游的实质改动：
   1. 全量简体中文化（`values-zh-rCN`）
-  2. 国内下载源（`Mirror.kt`，GitHub 走公共代理，多候选逐个回退）
+  2. 三档下载源（`Mirror.kt`）：自动 / 直连 GitHub / 国内镜像，简中系统默认走镜像
   3. 品牌更名换标（猫耳电视图标，`art/`）
   4. **界面按 v8 设计稿整体重做**（8 个视图，Kotlin 里手写排版，不是 Leanback 模板）
 
@@ -105,11 +105,11 @@ tv-hub/
 | 文件 | 行数 | 职责 |
 |---|---|---|
 | `MainActivity.kt` | 58 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
-| `Data.kt` | 964 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
-| `Ui.kt` | 521 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
-| `Screens.kt` | 3453 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
+| `Data.kt` | 996 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
+| `Ui.kt` | 531 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
+| `Screens.kt` | 3556 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
 | `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
-| `Mirror.kt` | 34 | 把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链） |
+| `Mirror.kt` | 67 | 下载源三档（自动 / 直连 / 镜像）+ 系统语言判定：把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链），自动档只在简中系统走镜像 |
 | `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 OpenAPK TV 自更新 |
 
 **视图清单**（都在 `Screens.kt`，全部 `private`，由 `TvHub()` 分发）
@@ -213,6 +213,11 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
 15. **`self` 段不跟着应用调度走**：`fetch_updates.py` 在「无到期应用」时会单独走 `refresh_self()`。如果把它塞回主流程的 `if not picked: return` 后面，自更新就要等某个应用到期才生效（踩过）。
 16. **改了 App/AppArt/Apk/Release 字段必须 BinCache.FORMAT +1**：二进制缓存格式升级时，必须把 `BinCache.FORMAT` 常量加 1，否则已缓存的旧格式文件会被误读，导致数据错乱或崩溃。
+17. **判断系统语言不能用 `Locale.getDefault()`**：`L.apply()` 会把它改成 App 内语言；而且系统语言变化时
+    Activity 重建、进程通常还活着，读到的仍是上一次的值。要读 `Resources.getSystem().configuration.locales[0]`。
+18. **Dialog 不要盖在启动页上**：主窗口还没拿到焦点时再叠一个 Dialog 窗口，输入事件无处可去，
+    实测直接 ANR（`Input dispatching timed out, no focused window`）。`MirrorAskDialog` 必须等
+    `Catalog.apps` 非空之后再弹；这也是它排在 `if (Catalog.apps.isEmpty()) return` 之后的原因。
 
 ---
 
@@ -221,7 +226,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 **已完成**
 - 品牌更名 + 猫耳电视图标（5 档 launcher + 5 档 banner，符合 TV-BN 含应用名）
 - 全量中文化（300+ 条，含日期格式 `yyyy年M月d日`）
-- 国内镜像下载 + 三级回退，真机（小米 Android 9）验证通过
+- 下载源三档（自动 / 直连 GitHub / 国内镜像）+ 三级回退；简中系统默认走镜像，语言发生变化时弹窗询问一次
 - v8 设计落地：7 个视图全部重写，深浅双主题
 - 设置页「界面语言」切换（跟随系统 / 简体中文 / English），无需重启 Activity
 - 详情页：卡片按 OK 进详情，横幅移至文字下方并自适应撑满剩余高度

@@ -210,11 +210,22 @@
     <string name="about_credits">Icon and marks are original to this project. Typeface Geist (OFL-1.1). The robot head follows Android brand assets (CC BY 3.0) and only indicates that this is an Android app.</string>
     <string name="about_no_browser">No browser available on this device</string>
 
-    <!-- Download source (see Mirror.kt) -->
+    <!-- Download source, three modes (see Mirror.kt) -->
     <string name="set_mirror">Download source</string>
-    <string name="mirror_auto">China mirrors first</string>
-    <string name="mirror_direct">Direct from GitHub</string>
-    <string name="set_mirror_help">Where artwork and APKs are downloaded from. When enabled, a China mirror is tried first and the original GitHub link is used if it fails. Large APKs can be slow on public mirrors. The APK signature check is never skipped.</string>
+    <string name="source_auto">Auto</string>
+    <string name="source_github">GitHub</string>
+    <string name="source_mirror">China mirror</string>
+    <string name="src_direct">direct from GitHub</string>
+    <string name="src_mirror">via a China mirror</string>
+    <string name="set_source_auto_sub">Automatic · currently %1$s</string>
+    <string name="set_source_github_sub">Always GitHub, never through a proxy</string>
+    <string name="set_source_mirror_sub">Always a China mirror, GitHub as fallback</string>
+    <string name="ask_mirror_title">Switch to a China mirror?</string>
+    <string name="ask_mirror_body">Your system language is now Simplified Chinese. On mainland networks GitHub often refuses to connect or drops to a few KB/s. Switch where artwork and APKs are downloaded from?</string>
+    <string name="ask_mirror_note">The direct URL stays as a fallback, and APK signature checks are unchanged.</string>
+    <string name="ask_mirror_yes">Use the mirror</string>
+    <string name="ask_mirror_no">Keep GitHub</string>
+    <string name="toast_source">Download source: %1$s</string>
     <string name="err_download_all">All download sources failed. Check the network and try again.</string>
 
     <!-- v8 玻璃浮层设计 -->

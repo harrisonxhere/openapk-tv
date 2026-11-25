@@ -800,13 +800,40 @@ object Prefs {
         file.edit().putBoolean("hideStreams", hideStreams).apply()
     }
 
-    // Default on: the app is meant to work on a TV box in China.
-    var mirrorAuto by mutableStateOf(true)
+    /* ---------- 下载源：0 自动 / 1 直连 GitHub / 2 国内镜像（见 Mirror） ---------- */
+    const val SOURCE_AUTO = 0
+    const val SOURCE_GITHUB = 1
+    const val SOURCE_MIRROR = 2
+
+    /** 默认「自动」：非中文系统直连 GitHub，简中系统才走国内镜像 */
+    var source by mutableIntStateOf(SOURCE_AUTO)
         private set
 
-    fun toggleMirror() {
-        mirrorAuto = !mirrorAuto
-        file.edit().putBoolean("mirrorAuto", mirrorAuto).apply()
+    /** 系统语言刚切成简体中文、而当前并没走镜像时置真，由 UI 弹一次询问框 */
+    var askMirror by mutableStateOf(false)
+
+    fun useSource(i: Int) {
+        val next = i.coerceIn(SOURCE_AUTO, SOURCE_MIRROR)
+        if (next == source) return
+        source = next
+        file.edit().putInt("source", next).apply()
+        askMirror = false
+    }
+
+    /**
+     * 系统语言变更检测，只在 `onCreate` 调一次。
+     *
+     * manifest 的 `configChanges` 不含 `locale`，所以系统语言一改 Activity 必然重建 —— 不需要
+     * 常驻监听，重建路径上比一次「上次见到的语言」就够了。只问「刚切成简中」那一趟：
+     * 首次安装没有上一条记录（不弹）；已经走镜像时也不弹（自动档对简中已经生效，手动选了镜像更不必问）。
+     */
+    fun noteSystemLanguage() {
+        val now = Mirror.systemLocale().toLanguageTag()
+        val last = file.getString("sysLang", null)
+        if (now != last) file.edit().putString("sysLang", now).apply()
+        if (last == null || last == now) return
+        val wasZh = runCatching { Mirror.isSimplifiedChinese(Locale.forLanguageTag(last)) }.getOrDefault(false)
+        if (!wasZh && Mirror.systemIsSimplifiedChinese() && !Mirror.usingMirror()) askMirror = true
     }
 
     val themes = listOf(R.string.theme_match, R.string.theme_light, R.string.theme_dark)
@@ -835,7 +862,12 @@ object Prefs {
         theme = file.getInt("theme", 0).coerceIn(themes.indices)
         lang = file.getInt("lang", 0).coerceIn(Langs.all.indices)
         hideStreams = file.getBoolean("hideStreams", true)
-        mirrorAuto = file.getBoolean("mirrorAuto", true)
+        /* 旧版的 mirrorAuto 布尔迁到三档：当时手动关掉的算「直连」，其余交给「自动」按语言重判 */
+        source = when {
+            file.contains("source") -> file.getInt("source", SOURCE_AUTO)
+            file.getBoolean("mirrorAuto", true) -> SOURCE_AUTO
+            else -> SOURCE_GITHUB
+        }.coerceIn(SOURCE_AUTO, SOURCE_MIRROR)
         heroCursor = file.getInt("heroCursor", 0)
         heroDay = file.getLong("heroDay", 0L)
     }

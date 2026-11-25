@@ -399,6 +399,7 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 (0,96)  Column，间距 12，宽 1152
         ├─ 外观主题   62dp  分段：深色 / 浅色
         ├─ 界面语言   62dp  右侧当前语言 + ›，按 OK 开选择弹层
+        ├─ 下载源     58dp  分段：自动 / GitHub / 国内镜像，副标写「当前实际走哪条」
         ├─ 自动更新 ・ 仅 Wi-Fi      双栏
         ├─ 开机启动 ・ 语音搜索      双栏
         ├─ 清理缓存 ・ 检查更新      双栏（右侧 chevron）
@@ -409,7 +410,12 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 `SetRow`：左标题 13sp + 副标题 10.5sp，右侧 `control: @Composable (focused: Boolean) -> Unit`。
 **control 必须用 `focused` 切前景色**（`fg = if (it) C.HiFg else C.Fg`），否则浅色主题下整行反白时看不见。
 
-`Seg` 只剩「外观主题」在用，它只有展示作用：遥控器只有一个确定键，所以 `onClick` 是「循环切下一档」，不是点选某一段。
+`Seg` 是纯展示件（「外观主题」与「下载源」两处）：遥控器只有一个确定键，所以 `onClick` 是
+「循环切下一档」，不是点选某一段。下载源三档循环：自动 → GitHub → 国内镜像。
+
+**下载源的副标题必须写「当前实际走哪条」**：自动档的结果取决于系统语言，只写「自动」用户不知道
+现在到底有没有走镜像。三档分别显示 `自动 · 当前走国内镜像` / `始终直连 GitHub，不经代理` /
+`始终走国内镜像，失败回退 GitHub`（判断逻辑见 `ARCHITECTURE.md` 2.4）。
 
 **语言选择 `LangPickerDialog`**（界面语言行按 OK 打开）：
 - 用 `Dialog`（`usePlatformDefaultWidth = false`）而不是页面内浮层：独立窗口天然把焦点关在弹层里，
@@ -420,6 +426,15 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 - 行高 52dp，当前语言右侧打勾并加粗；聚焦行**整行反色**（`C.HiBg` / `C.HiFg`），不挂外扩焦点环——
   `LazyColumn` 会裁边，环会被切平。
 - 打开时 `FocusRequester` 落到当前语言；关闭后由设置页把焦点还回语言行。
+
+**「改用国内镜像？」询问框 `MirrorAskDialog`**（不做成设置里的入口，只在系统语言变成简中时弹一次）：
+- 触发：`Prefs.noteSystemLanguage()` 在 `onCreate` 比对「上次见到的系统语言」，从非简中变成简中、
+  且当前没走镜像时置起 `Prefs.askMirror`；用户选「改为国内镜像」写 `source = 2`，选「保持直连」只关窗。
+- 一点约束：**必须等 `Catalog.apps` 非空之后再弹**。启动页阶段主窗口还没有焦点，再盖一个 Dialog 窗口
+  会让输入事件无处可去，实测直接 ANR（`Input dispatching timed out, no focused window`）。
+- 结构：65% 黑遮罩 + 600dp 面板（`C.Card`、22 圆角、投影），标题 20sp + 正文 12.5sp（行高 1.6）+
+  11sp 灰注脚，底部两个等宽按钮 46dp（`DarkBtn(dot = false)` + `GhostBtn(height = 46.dp)`）。
+  默认焦点在左「改为国内镜像」。
 
 **`Switch`**：按 Android（Material 3）规格自绘，不用 material3 的组件（项目没引该依赖，且控件的配色要跟着行聚焦态走）。
 轨道 52×32、圆角 16；滑块关闭 16dp（左内边距 8）、开启 24dp（左 24），尺寸与位移 180ms 过渡。

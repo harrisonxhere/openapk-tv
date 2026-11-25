@@ -54,7 +54,7 @@ adb install TVHub-1.0.0.apk
 |---|---|
 | 设计稿即坐标 | 界面按 1280×720 写死 dp，`DesignCanvas` 用 `LocalDensity` 整体缩放，换分辨率构图不变 |
 | 焦点系统 | 自建 `Focusable`，焦点环、反色高亮、焦点记忆与跨区跳转全部手写 |
-| 下载源 | `Mirror` 依次尝试 `gh-proxy.com` → `ghproxy.net` → 原链，失败自动换源 |
+| 下载源 | 三档（自动 / 直连 GitHub / 国内镜像）。自动档看系统语言：简中走镜像，其它直连；镜像内部 `gh-proxy.com` → `ghproxy.net` → 原链逐个回退 |
 | 签名校验 | 升级前比对已装包与待装包证书指纹，不一致就拦截，不静默覆盖 |
 | 安装不断电 | 安装期间持 `FLAG_KEEP_SCREEN_ON`，系统确认弹窗覆盖时也有效 |
 

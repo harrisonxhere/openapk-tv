@@ -200,6 +200,17 @@ fun TvHub() {
         return
     }
 
+    /* 系统语言刚切成简体中文（见 Prefs.noteSystemLanguage）：问一次要不要把下载源换成国内镜像。
+       必须等目录就绪之后再弹 —— 启动页阶段主窗口还没有焦点，上面再盖一个 Dialog 窗口会让
+       输入事件无处可去（实测直接 ANR：Input dispatching timed out, no focused window）。 */
+    if (Prefs.askMirror) MirrorAskDialog(
+        onSwitch = {
+            Prefs.useSource(Prefs.SOURCE_MIRROR)
+            toast = str(R.string.toast_source, str(R.string.source_mirror))
+        },
+        onKeep = { Prefs.askMirror = false },
+    )
+
     // 必须等目录加载完再算：否则 remember 会把「空列表」缓存下来，首屏永远是空的
     // Images.epoch 也进 key：某张横幅被判定取不到时要能把这一项从主推位换掉
     val hero = remember(Catalog.apps.size, Prefs.hideStreams, Images.epoch) { Hero.playlist() }
@@ -2460,6 +2471,11 @@ private fun BoxScope.SettingsScreen(
     )
 
 
+    /* 下载源：三档。副标题必须写「当前实际走哪条」——自动档的结果取决于系统语言，
+       只写「自动」的话用户不知道现在到底有没有走镜像。点整行循环切换（与外观主题同一套手势）。 */
+    val srcLabels = listOf(
+        str(R.string.source_auto), str(R.string.source_github), str(R.string.source_mirror),
+    )
     Column(Modifier.at(0, 96).width(1152.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SetRow(
             title = str(R.string.set_theme),
@@ -2491,6 +2507,26 @@ private fun BoxScope.SettingsScreen(
                 }
             },
             onClick = { langBack = true; pickLang = true },
+        )
+        SetRow(
+            title = str(R.string.set_mirror),
+            sub = when (Prefs.source) {
+                Prefs.SOURCE_GITHUB -> str(R.string.set_source_github_sub)
+                Prefs.SOURCE_MIRROR -> str(R.string.set_source_mirror_sub)
+                else -> str(
+                    R.string.set_source_auto_sub,
+                    str(if (Mirror.usingMirror()) R.string.src_mirror else R.string.src_direct),
+                )
+            },
+            height = 58.dp,
+            control = {
+                Seg(labels = srcLabels, active = Prefs.source, fg = if (it) C.HiFg else C.Fg)
+            },
+            onClick = {
+                val next = (Prefs.source + 1) % srcLabels.size
+                Prefs.useSource(next)
+                toast(str(R.string.toast_source, srcLabels[next]))
+            },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             SetRow(
@@ -2582,7 +2618,10 @@ private fun BoxScope.SettingsScreen(
             sub = null,
             height = 54.dp,
             control = { T(str(R.string.set_reset_sub), 10.5.sp, color = C.Fg3) },
-            onClick = { Prefs.useTheme(0); Prefs.useLang(0); toast(str(R.string.toast_reset)) },
+            onClick = {
+                Prefs.useTheme(0); Prefs.useLang(0); Prefs.useSource(Prefs.SOURCE_AUTO)
+                toast(str(R.string.toast_reset))
+            },
         )
     }
 
@@ -2866,6 +2905,59 @@ private fun Switch(on: Boolean, f: Boolean = false) {
     }
 }
 
+/**
+ * 「改用国内镜像？」询问框。触发条件只有一处：[Prefs.noteSystemLanguage] 发现系统语言刚变成
+ * 简体中文、而当前并没有在走镜像。
+ *
+ * 与语言弹层同一套做法：Dialog 自己的窗口把焦点关在里面，BACK 由系统转成 onDismissRequest，
+ * 不用手写焦点陷阱；坐标系也是独立窗口，得按 1280×720 重算一遍比例。
+ * 默认焦点落在「改为国内镜像」——简中系统 + 直连 GitHub 是唯一会走到这里的组合，推荐项就是它。
+ */
+@Composable
+private fun MirrorAskDialog(onSwitch: () -> Unit, onKeep: () -> Unit) {
+    Dialog(onDismissRequest = onKeep, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val d = LocalDensity.current
+            val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)
+            CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxSize().background(Color(0xA6000000)))
+
+                    Column(
+                        Modifier.width(600.dp)
+                            .cardShadow(RoundedCornerShape(22.dp), 34.dp)
+                            .clip(RoundedCornerShape(22.dp))
+                            .background(C.Card)
+                            .padding(horizontal = 26.dp, vertical = 26.dp),
+                    ) {
+                        T(str(R.string.ask_mirror_title), 20.sp, weight = FontWeight.Bold, tight = true)
+                        Spacer(Modifier.height(10.dp))
+                        T(str(R.string.ask_mirror_body), 12.5.sp, color = C.Fg2, line = 1.6f)
+                        Spacer(Modifier.height(10.dp))
+                        T(str(R.string.ask_mirror_note), 11.sp, color = C.Fg3, line = 1.5f)
+                        Spacer(Modifier.height(24.dp))
+
+                        val yes = remember { FocusRequester() }
+                        val no = remember { FocusRequester() }
+                        LaunchedEffect(Unit) { delay(120); runCatching { yes.requestFocus() } }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            DarkBtn(
+                                str(R.string.ask_mirror_yes), Modifier.weight(1f),
+                                requester = yes, dot = false, onClick = onSwitch,
+                            )
+                            GhostBtn(
+                                str(R.string.ask_mirror_no), null,
+                                modifier = Modifier.weight(1f), height = 46.dp,
+                                requester = no, onClick = onKeep,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun Seg(labels: List<String>, active: Int, fg: Color) {
     Row(
@@ -2903,6 +2995,8 @@ private fun DarkBtn(
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     progress: Float? = null,
     requester: FocusRequester? = null,
+    /** 左侧那个深色圆底座（放图标或进度环）。纯文字按钮（弹窗里的确认键）传 false，否则是个空点 */
+    dot: Boolean = true,
     onClick: () -> Unit,
 ) {
     Focusable(onClick, modifier, requester) { f ->
@@ -2913,26 +3007,35 @@ private fun DarkBtn(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(17.dp).background(if (enabled) C.BtnFg else C.BtnFg.copy(alpha = 0.4f), CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                when {
-                    progress != null -> Ring(progress, C.BtnBg, C.BtnFg.copy(alpha = 0.3f), 12.dp)
-                    icon != null -> Ico(icon, 9.dp, C.BtnBg)
+            if (dot) {
+                Box(
+                    Modifier.size(17.dp).background(if (enabled) C.BtnFg else C.BtnFg.copy(alpha = 0.4f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when {
+                        progress != null -> Ring(progress, C.BtnBg, C.BtnFg.copy(alpha = 0.3f), 12.dp)
+                        icon != null -> Ico(icon, 9.dp, C.BtnBg)
+                    }
                 }
+                Spacer(Modifier.width(8.dp))
             }
-            Spacer(Modifier.width(8.dp))
             T(text, 13.sp, color = C.BtnFg.copy(alpha = if (enabled) 1f else 0.5f), weight = FontWeight.SemiBold, maxLines = 1)
         }
     }
 }
 
 @Composable
-private fun GhostBtn(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector?, onClick: () -> Unit) {
-    Focusable(onClick) { f ->
+private fun GhostBtn(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    modifier: Modifier = Modifier,
+    height: Dp = 40.dp,
+    requester: FocusRequester? = null,
+    onClick: () -> Unit,
+) {
+    Focusable(onClick, modifier, requester) { f ->
         Row(
-            Modifier.fillMaxWidth().height(40.dp).ring(f, 12.dp, 1.01f)
+            Modifier.fillMaxWidth().height(height).ring(f, 12.dp, 1.01f)
                 .background(if (f) C.HiBg else C.RowBg, RoundedCornerShape(12.dp))
                 .border(1.dp, if (f) C.HiBg else C.Line, RoundedCornerShape(12.dp)),
             horizontalArrangement = Arrangement.Center,

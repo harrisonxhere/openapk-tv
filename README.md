@@ -25,7 +25,7 @@ adb install -r tv-hub-1.0.0.apk
 
 | 位置 | 内容 |
 |---|---|
-| `app/src/main/java/app/tvhub/` | 全部 Kotlin 源码（7 个文件，约 3,300 行）：`Screens.kt` 七个视图、`Ui.kt` 设计系统、`Data.kt` 数据与偏好、`Installer.kt` 下载安装、`Mirror.kt` 国内源、`UpdateIndex.kt` 版本索引 |
+| `app/src/main/java/app/tvhub/` | 全部 Kotlin 源码（7 个文件，约 5,700 行）：`Screens.kt` 八个视图、`Ui.kt` 设计系统、`Data.kt` 数据与偏好、`Installer.kt` 下载安装、`Mirror.kt` 下载源、`UpdateIndex.kt` 版本索引 |
 | `app/src/main/res/values{,-zh-rCN}/` | 英文基准 + 简体中文文案（各 300+ 条） |
 | `docs/screenshots/current/` | 当前界面实拍（深浅主题、设置页） |
 | `art/` | 品牌标识真源 `logo.svg`（猫耳电视 + 屏幕内机器人头）与图标/横幅生成脚本 |
