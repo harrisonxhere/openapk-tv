@@ -2132,8 +2132,10 @@ private fun BackPill(onBack: () -> Unit) {
     Focusable(onBack) { f ->
         Row(
             Modifier.height(44.dp).ring(f, 22.dp, 1.02f)
+                /* 不描边：胶囊靠 RowBg 的填充差（深色）/ cardShadow（浅色）定边，
+                   和全站卡片同一套语言，见 DESIGN-SYSTEM 6 */
+                .cardShadow(CircleShape, 10.dp)
                 .background(if (f) C.HiBg else C.RowBg, CircleShape)
-                .border(1.dp, if (f) Color.Transparent else C.Line, CircleShape)
                 .padding(start = 14.dp, end = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
