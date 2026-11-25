@@ -366,15 +366,17 @@ fun TvHub() {
 
 @Composable
 private fun Splash(modifier: Modifier = Modifier) {
+    /* 启动页只有一两秒，品牌块要够重才看得见：96dp 徽标 + 38sp 名字
+       （顶栏是 30dp / 17sp，两处本来就不是一套尺寸，别拉到一起） */
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Brand(30.dp)
-            Spacer(Modifier.width(10.dp))
-            T(str(R.string.app_name), 17.sp, weight = FontWeight.Bold, tight = true)
+            Brand(96.dp)
+            Spacer(Modifier.width(18.dp))
+            T(str(R.string.app_name), 38.sp, weight = FontWeight.Bold, tight = true)
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(28.dp))
         /* 进度条：按已读字节估算，低端电视冷启动时让用户知道没卡死 */
-        Box(Modifier.width(220.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(C.Fg.copy(alpha = 0.12f))) {
+        Box(Modifier.width(340.dp).height(5.dp).clip(RoundedCornerShape(3.dp)).background(C.Fg.copy(alpha = 0.12f))) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(Catalog.progress).background(C.Fg.copy(alpha = 0.7f)))
         }
     }

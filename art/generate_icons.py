@@ -69,20 +69,25 @@ def banner_bg(W, H):
 
 
 def make_banner(img, W, H):
-    """16:9 banner with the full logo (icon + app name), per TV-BN."""
+    """16:9 banner with the full logo (icon + app name), per TV-BN.
+
+    图标高 92/180 ≈ 51%：再大（旧版 112 = 62%）会顶到上下边、被 launcher 的圆角裁掉，
+    在「已收藏的应用」那种小卡（约 110×62dp）里也显得闷。左侧留 26、文字 32，
+    比旧版（112 / 22 / 40）松一档；文字上限压到 32，否则图标缩小后文字会反而变成主角。
+    """
     k = H / 180.0
     canvas = banner_bg(W, H)
-    icon_h = int(112 * k)
+    icon_h = int(92 * k)
     scale = icon_h / img.height
     icon_w = max(1, int(img.width * scale))
     icon = img.resize((icon_w, icon_h), Image.LANCZOS)
-    x0 = int(22 * k)
+    x0 = int(26 * k)
     canvas.paste(icon, (x0, (H - icon_h) // 2), icon)
 
     draw = ImageDraw.Draw(canvas)
-    text_x = x0 + icon_w + int(20 * k)
-    avail = W - text_x - int(14 * k)
-    size = int(40 * k)
+    text_x = x0 + icon_w + int(16 * k)
+    avail = W - text_x - int(16 * k)
+    size = int(32 * k)
     while size > int(16 * k):
         font = ImageFont.truetype(FONT, size)
         box = draw.textbbox((0, 0), NAME, font=font)
