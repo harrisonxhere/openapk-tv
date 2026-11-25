@@ -268,6 +268,18 @@ fun Modifier.cardShadow(shape: Shape, radius: Dp = 20.dp): Modifier =
 应用图标用 `AppIcon(app, size)`：网络图加载失败时退化成 `NameCard`（首字母色块），
 不会出现破图 —— 目录里确实有几种图标 URL 已失效。
 
+**品牌标识有三套尺寸，别互相抄**：
+
+| 位置 | 尺寸 | 为什么 |
+|---|---|---|
+| 启动页 `Splash` | `Brand(96.dp)` + 名字 38sp | 屏幕中央只有它，停留 1–2 秒，必须够重 |
+| 顶栏 `TopBar` | `Brand(30.dp)` + 名字 17sp | 常驻信息，旁边还有导航胶囊，抢空间就乱 |
+| TV 桌面 | `drawable-*/banner.png` | launcher 读 banner（320×180），不是 `ic_launcher` |
+
+banner 由 `art/generate_icons.py` 生成：图标高 **92/180 ≈ 51%**、左边距 26、文字上限 32。
+图标不要给回 62%（旧值）：上下只剩 34px，launcher 圆角一切就缺角，在
+「已收藏的应用」那种小卡里也显得闷。改完必须重跑脚本，5 档密度一起换。
+
 ---
 
 ## 8. 圆角与间距
