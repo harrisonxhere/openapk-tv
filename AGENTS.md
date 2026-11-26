@@ -26,10 +26,16 @@
 ## 2. 硬性约束（改之前必须知道）
 
 1. **许可证** GPL-3.0-only，不能换成 or-later / MIT / Apache。
-   `NOTICE.md`、`README.md` 顶部衍生声明里的**来源声明必须保留**（GPL 要求随分发给出完整声明与源码）；
+   `NOTICE.md`、`README.md` / `README.zh-CN.md` 顶部衍生声明里的**来源声明必须保留**（GPL 要求随分发给出完整声明与源码）；
    **应用界面内不点名上游**（用户 2026-11-25 要求），关于页只写「独立修改版 + 首次修改日期 + GPL-3.0 + 仓库地址」，
    这条底线也不能删 —— GPL-3.0 §5(a) 要求修改版携带「已修改」与日期的提示。
+   **更新日志 / GitHub Release 说明也不写「衍生自 XXX」**（用户 2026-11-26 要求）：上游来源只在两份 README 顶部声明和
+   `NOTICE.md` 各写一次，够了；发布说明的许可段只留「GPL-3.0-only + 源码/改动见 NOTICE.md」。
    更名只允许改「自称」，发 APK 必须同渠道给源码。
+1b. **README 多语言**（用户 2026-11-26 要求）`README.md` 是**英文原文 / 默认**（GitHub 首屏就展示它），
+   中文版在 `README.zh-CN.md`。两份顶部都有一行语言列表（当前语言加粗，其余是链接），改动任一份都要**同步另一份**
+   的结构与版本号。新增语言：复制 `README.zh-CN.md` 为 `README.<code>.md`（如 `README.ja.md`），翻译，
+   再到**所有** README 的语言行里挂上链接。日后的德语等语言都按这个约定加，不要再塞回同一个文件。
 2. **多语言** 任何用户可见文案必须走 `str(R.string.xxx)`。
    新增键要**同时**加两份：`app/src/main/res/values/strings.xml`（英文基准）+ `values-zh-rCN/strings.xml`（中文）。
    代码里出现中文字面量就是 bug。数据（应用描述）来自上游 catalog，是英文，属已知数据层缺口，不要假装已解决。
@@ -66,7 +72,8 @@
 tv-hub/
 ├── AGENTS.md                  ← 本文件（AI 入口）
 ├── CLAUDE.md                  ← 指针，内容同 AGENTS.md
-├── README.md                  ← 人读的项目介绍（含衍生版声明，勿删）
+├── README.md                  ← 项目介绍（**英文，默认**，GitHub 首屏；含衍生版声明，勿删）
+├── README.zh-CN.md            ← 同一份介绍的中文版（顶部语言行互链）
 ├── NOTICE.md                  ← GPL 合规声明：来源 commit、修改日期、第三方资产
 ├── LICENSE                    ← GPL-3.0 原文，不动
 ├── FONT-LICENSE-OFL.txt       ← Geist 字体许可
@@ -250,4 +257,5 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 | 怎么编译、怎么在电视上调试 | `docs/BUILD-AND-TEST.md` |
 | 为什么是现在这个设计（含被否定的方案） | `docs/DECISIONS.md` |
 | 对外介绍 / 项目页正文 | `docs/INTRO.md` |
+| 项目页正文（多语言，英文为默认） | `README.md`（English，GitHub 首屏）· `README.zh-CN.md`（中文） |
 | 视觉真源 | `app/src/main/java/app/tvhub/Ui.kt` |
