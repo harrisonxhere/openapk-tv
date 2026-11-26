@@ -203,8 +203,8 @@
     <string name="about_source">数据来源</string>
     <string name="about_source_value">各项目 GitHub Releases · 每日采集</string>
     <string name="about_repo">项目仓库</string>
-    <string name="about_repo_value">github.com/harrisonxhere/tv-hub</string>
-    <string name="about_repo_url">https://github.com/harrisonxhere/tv-hub</string>
+    <string name="about_repo_value">github.com/harrisonxhere/openapk-tv</string>
+    <string name="about_repo_url">https://github.com/harrisonxhere/openapk-tv</string>
     <string name="about_device">设备</string>
     <string name="about_device_value">%1$s · Android %2$s（API %3$d）</string>
     <string name="about_credits">图标与标识为本项目自制；字体 Geist（OFL-1.1）；标识内的机器人头形取自 Android 品牌资源（CC BY 3.0），仅用于说明这是一款 Android 应用。</string>

@@ -238,7 +238,7 @@ adb shell dumpsys power  | grep -A2 "Wake Locks"      # → SCREEN_BRIGHT_WAKE_L
 当前实例的索引地址（`releases/download/updates/` 是固定 tag，客户端只认这一个常量）：
 
 ```
-https://github.com/harrisonxhere/tv-hub/releases/download/updates/updates.json.gz
+https://github.com/harrisonxhere/openapk-tv/releases/download/updates/updates.json.gz
 ```
 
 **为什么用 REST 而不是 GraphQL**：GraphQL 按「节点数」计费，`releaseAssets(first: 40)`
@@ -289,7 +289,7 @@ UI 侧的「可更新」判定是 `i.versionCode < a.versionCode || UpdateIndex.
 
 ```json
 "self": {
-  "repo": "harrisonxhere/tv-hub",
+  "repo": "harrisonxhere/openapk-tv",
   "tag": "v1.0.0",
   "date": "2026-11-21",
   "apk": { "name": "tv-hub-1.0.0.apk", "url": "...", "size": 3289061 }

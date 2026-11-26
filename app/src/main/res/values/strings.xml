@@ -203,8 +203,8 @@
     <string name="about_source">Data source</string>
     <string name="about_source_value">Each project’s GitHub Releases · refreshed daily</string>
     <string name="about_repo">Repository</string>
-    <string name="about_repo_value">github.com/harrisonxhere/tv-hub</string>
-    <string name="about_repo_url">https://github.com/harrisonxhere/tv-hub</string>
+    <string name="about_repo_value">github.com/harrisonxhere/openapk-tv</string>
+    <string name="about_repo_url">https://github.com/harrisonxhere/openapk-tv</string>
     <string name="about_device">Device</string>
     <string name="about_device_value">%1$s · Android %2$s (API %3$d)</string>
     <string name="about_credits">Icon and marks are original to this project. Typeface Geist (OFL-1.1). The robot head follows Android brand assets (CC BY 3.0) and only indicates that this is an Android app.</string>

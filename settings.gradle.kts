@@ -18,5 +18,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "tv-hub"
+rootProject.name = "openapk-tv"
 include(":app")
