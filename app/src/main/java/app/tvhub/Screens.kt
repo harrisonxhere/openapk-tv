@@ -1403,16 +1403,20 @@ private fun BoxScope.RoomScreen(
 
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(6),
+        columns = GridCells.Fixed(4),
         /* 页头 0..44，网格顶边提到 56、内部 top padding 12，卡片视觉上仍在 68 起
-           （原来 96，上方空了 52dp）。卡片是 16:9，高度被宽度钉死，3 行 5 列无论怎么摆
-           底部都会剩 90 多 dp；改成 6 列 × 4 行、行距 26、高 592，四整行铺满。
+           （原来 96，上方空了 52dp）。卡片是 16:9，高度被宽度钉死；每格还有 7dp 间距 +
+           12.5sp 名称（≈23dp），所以「一格」实际高 ≈ 宽×9/16 + 23。
+           4 列 × 3 行：卡宽 (1152-3×18)/4 = 274.5、高 154.4，一格 177.7，
+           三行 533 + 2×22 = 577，刚好铺满 592。之前 6 列（177 宽）一屏塞 24 张，
+           缩略图小到看不清；也不能取 5 列 —— 5 列 216 宽时一格 145，
+           四行 580+ 装不进 592，三行又会在底部空出 100dp 的带状留白。
            顶边多出的 12 是给聚焦环留的：ring 的 halo（gap 2 + halo 7）画在卡片 bounds 之外，
            而 LazyVerticalGrid 会沿滚动方向裁掉越界内容，不留缝第一行的白环就会被削平 */
         modifier = Modifier.at(0, 56).width(1152.dp).height(592.dp),
         contentPadding = PaddingValues(top = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(18.dp),
-        verticalArrangement = Arrangement.spacedBy(26.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         if (shown.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
