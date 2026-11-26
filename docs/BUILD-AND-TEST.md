@@ -157,9 +157,13 @@ git push origin v1.0.2     # ← 这一步触发 .github/workflows/release.yml
 
 - **先推 main 再推 tag**：反过来的话 tag 会指向旧 commit，包里的版本号与发布说明对不上。
 - tag 重推 / 重跑会走 `gh release upload --clobber` 覆盖附件，不会报「release 已存在」。
-- 跑的仍是 debug keystore 签名（仓库里没有 `keystore.properties`）。换正式证书后要在 Secrets 里配
-  `KEYSTORE_B64` / `STORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` 并在 workflow 里解码，否则 CI 出的包与
-  手上的正式包签名不一致、无法覆盖安装。
+- **签名密钥**：本地 `D:/Harrison/keystores/openapk-tv/openapk-tv.jks`（PKCS12，别名 `openapk-tv`，
+  4096 RSA，有效期 30 年），仓库根目录的 `keystore.properties` 指向它、已被 gitignore。
+  CI 从 Secrets 拿同一把：`KEYSTORE_B64`（jks 的 base64）/ `STORE_PASSWORD` / `KEY_PASSWORD`，
+  构建前解码成 `keystore.properties`，构建后用 `apksigner` 比对证书 SHA-256
+  （`b1c54698…b11d7183`），对不上直接失败——防止静默用 runner 的临时 debug 密钥发出去。
+  **这把密钥丢了就再也发不了能覆盖安装的包**，至少离线备份两份。
+- 换了签名之后，之前装过 debug 签名包的机器要先卸载再装（同包名不同证书装不上）。
 - CI 建完 Release 后，`updates.json` 的 `self` 段要等下一次 `update-index` 才指向新版；
   急着生效就在 Actions 里对 `update-index` 点一次 Run workflow。
 

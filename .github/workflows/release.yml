@@ -3,8 +3,11 @@ name: release
 # 发版：推一个 v* tag，这里自动构建 release 包并发出 GitHub Release。
 #   git tag -a v1.0.2 -m "v1.0.2" && git push origin main && git push origin v1.0.2
 #
-# 更新日志约定：docs/releases/<tag>.md（例如 docs/releases/v1.0.2.md）。
-# 文件不存在时退回 GitHub 自动生成的 notes（按 commit 归类）。
+# 更新日志约定：docs/releases/<tag>.md（例如 docs/releases/v1.0.2.md），一份文件双语，
+# 英文在上、中文在下。文件不存在时退回 GitHub 自动生成的 notes（按 commit 归类）。
+#
+# 签名：仓库 Secrets 里必须有 KEYSTORE_B64 / STORE_PASSWORD / KEY_PASSWORD 三项。
+# 密钥文件本体在本地 D:/Harrison/keystores/openapk-tv/（不进库），丢了就再也发不了覆盖安装的包。
 on:
   push:
     tags:
@@ -47,8 +50,35 @@ jobs:
             || { echo "::error::tag $GITHUB_REF_NAME 与 app/build.gradle.kts 的 versionName 不一致"; exit 1; }
           echo "版本号一致：$VERSION"
 
+      # 签名必须固定：runner 每次的 debug.keystore 都是新的，靠它签出来的包彼此不能覆盖安装
+      - name: 配置发布密钥
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_B64:-}" ] || [ -z "${STORE_PASSWORD:-}" ]; then
+            echo "::error::缺少 KEYSTORE_B64 / STORE_PASSWORD / KEY_PASSWORD secrets，拒绝用临时 debug 密钥发版"
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$RUNNER_TEMP/release.jks" "$STORE_PASSWORD" "openapk-tv" "$KEY_PASSWORD" > keystore.properties
+
       - name: 构建 release 包
         run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      # 防止配置没生效时静默用 debug 签名发出去
+      - name: 核对签名
+        run: |
+          set -euo pipefail
+          EXPECTED="b1c546982a32524325cd691ec5d8b386244b2d933eeb524f4dfa2d27b11d7183"
+          APKSIGNER=$(find "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools" -name apksigner -type f | sort -V | tail -1)
+          GOT=$("$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk \
+                | grep -i "SHA-256 digest" | awk '{print tolower($NF)}' | tr -d ':')
+          echo "APK 签名证书：$GOT"
+          [ "$GOT" = "$EXPECTED" ] || { echo "::error::签名指纹不符，检查 KEYSTORE_B64"; exit 1; }
 
       - name: 整理产物
         id: pack
