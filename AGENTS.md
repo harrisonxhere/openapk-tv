@@ -91,14 +91,16 @@ tv-hub/
 │   ├── generate_icons.py      ← 由 logo-1024.png 生成 5 档启动器图标 + 5 档 TV 横幅
 │   └── source/                ← logo-1024.png（logo.svg 的 Chrome 渲染产物）+ 原始 svg 备份
 ├── .github/workflows/updates.yml  ← 每日抓取应用更新 → data/updates/ + updates release
+├── .github/workflows/release.yml  ← 推 v* tag 即构建并发版（附件 + sha256，正文取 docs/releases/）
 ├── data/catalog-source-2026-11-20.json  ← 上游目录原始快照（重新生成 catalog.json 用）
 ├── docs/
 │   ├── ARCHITECTURE.md        ← 数据流、状态管理、安装链路
 │   ├── DESIGN-SYSTEM.md       ← 设计坐标系、颜色令牌、焦点环、图片渲染
 │   ├── SCREENS.md             ← 8 个视图逐个的坐标与结构
-│   ├── BUILD-AND-TEST.md      ← 构建、模拟器、adb、截图、切语言
+│   ├── BUILD-AND-TEST.md      ← 构建、模拟器、adb、截图、切语言、发版
 │   ├── DECISIONS.md           ← 为什么长这样（v1→v9 决策与否定记录）
 │   ├── INTRO.md               ← 对外介绍（可直接当项目页正文）
+│   ├── releases/              ← 每个版本的发布说明，`<tag>.md` 由 CI 直接当 Release 正文
 │   └── screenshots/current/   ← 当前界面实拍（3 张，浅/深主题 + 设置）
 └── tools/
     ├── fetch_updates.py       ← 更新索引采集（REST + 分层调度）
@@ -171,6 +173,20 @@ versionName = "1.0.1"   // semver，给人看的
 （1.0.0 → 10000）、要么在 0.x 阶段算出比 10 还小的值；单线发版「+1」最不容易算错。
 
 `User-Agent` 取的是 `BuildConfig.VERSION_NAME`，不要再写死字符串到网络代码里。
+
+**发版**
+
+改版本号 → 写 `docs/releases/v<ver>.md` → 提交推 main → 打 `v<ver>` tag 推上去。
+`.github/workflows/release.yml` 会校验 tag 与 `versionName` 一致、构建 release 包、发 Release
+（附件 `openapk-tv-<ver>.apk` + `.sha256`，标题 `OpenAPK TV <ver>`，正文取那份 md）。
+
+```bash
+git tag -a v1.0.2 -m "v1.0.2"
+git push origin main && git push origin v1.0.2   # 先 main 后 tag，别再 --follow-tags
+```
+
+**不要**再去网页手工建 Release：标题、正文、附件三样都容易漏（v1.0.1 就漏成了草稿）。
+细节与签名注意事项见 `docs/BUILD-AND-TEST.md` §8。
 
 ---
 

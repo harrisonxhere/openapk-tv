@@ -133,3 +133,32 @@ adb -s 192.168.1.46:5555 install -r -t app/build/outputs/apk/debug/app-debug.apk
 - [ ] 深色 / 浅色各截一张，中文 / 英文各截一张
 - [ ] 焦点链路走一遍：顶栏 → 内容 → 详情 → BACK → 顶栏
 - [ ] 截图归档到 `docs/screenshots/current/`
+
+---
+
+## 8. 发版（推 tag 即发，CI 全自动）
+
+发版不需要人工建 Release，也不需要在本地出包：
+
+```bash
+# 1. 改版本号（两处一起改，CI 会校验 tag 与 versionName 是否一致）
+#    app/build.gradle.kts: versionCode +1，versionName "1.0.2"
+# 2. 写更新日志：docs/releases/v1.0.2.md（没有这个文件就退回自动生成的 notes）
+# 3. 推
+git commit -am "release: v1.0.2（versionCode 13）"
+git tag -a v1.0.2 -m "v1.0.2"
+git push origin main
+git push origin v1.0.2     # ← 这一步触发 .github/workflows/release.yml
+```
+
+流水线做的事：校验 tag 与 `versionName` → `assembleRelease` → 改名 `openapk-tv-<ver>.apk` →
+生成 `.sha256` → 建 Release（标题 `OpenAPK TV <ver>`，正文取 `docs/releases/<tag>.md`）→ 标记 latest。
+
+- **先推 main 再推 tag**：反过来的话 tag 会指向旧 commit，包里的版本号与发布说明对不上。
+- tag 重推 / 重跑会走 `gh release upload --clobber` 覆盖附件，不会报「release 已存在」。
+- 跑的仍是 debug keystore 签名（仓库里没有 `keystore.properties`）。换正式证书后要在 Secrets 里配
+  `KEYSTORE_B64` / `STORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` 并在 workflow 里解码，否则 CI 出的包与
+  手上的正式包签名不一致、无法覆盖安装。
+- CI 建完 Release 后，`updates.json` 的 `self` 段要等下一次 `update-index` 才指向新版；
+  急着生效就在 Actions 里对 `update-index` 点一次 Run workflow。
+

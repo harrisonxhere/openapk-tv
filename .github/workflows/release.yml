@@ -1,0 +1,97 @@
+name: release
+
+# 发版：推一个 v* tag，这里自动构建 release 包并发出 GitHub Release。
+#   git tag -a v1.0.2 -m "v1.0.2" && git push origin main && git push origin v1.0.2
+#
+# 更新日志约定：docs/releases/<tag>.md（例如 docs/releases/v1.0.2.md）。
+# 文件不存在时退回 GitHub 自动生成的 notes（按 commit 归类）。
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+
+permissions:
+  contents: write
+
+# 同一个 tag 不并发；已排队的不取消，避免传到一半的 Release 变成半成品
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # tag 与 build.gradle.kts 的版本号必须一致，否则发出去的包版本对不上 tag
+      - name: 校验版本号
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          grep -q "versionName = \"$VERSION\"" app/build.gradle.kts \
+            || { echo "::error::tag $GITHUB_REF_NAME 与 app/build.gradle.kts 的 versionName 不一致"; exit 1; }
+          echo "版本号一致：$VERSION"
+
+      - name: 构建 release 包
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: 整理产物
+        id: pack
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          APK="openapk-tv-${VERSION}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+          cat "$APK.sha256"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+
+      - name: 发布 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          VERSION="${{ steps.pack.outputs.version }}"
+          APK="${{ steps.pack.outputs.apk }}"
+          TITLE="OpenAPK TV $VERSION"
+          NOTES="docs/releases/${TAG}.md"
+          if [ -f "$NOTES" ]; then
+            echo "用 $NOTES 作为更新日志"
+            NOTES_ARGS=(--notes-file "$NOTES")
+          else
+            echo "没有 $NOTES，退回自动生成 notes"
+            NOTES_ARGS=(--generate-notes)
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # tag 重推 / 重跑：覆盖附件，标题与正文对齐仓库里的版本
+            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
+            gh release edit "$TAG" --title "$TITLE" "${NOTES_ARGS[@]}"
+          else
+            gh release create "$TAG" "$APK" "$APK.sha256" \
+              --title "$TITLE" "${NOTES_ARGS[@]}" --verify-tag --latest
+          fi
+
+      - name: 摘要
+        run: |
+          {
+            echo "### OpenAPK TV ${{ steps.pack.outputs.version }}"
+            echo
+            echo "- 附件：\`${{ steps.pack.outputs.apk }}\` + \`.sha256\`"
+            echo "- Release：https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+            echo
+            echo "签名不变的情况下可直接覆盖安装；改了签名需先卸载。"
+          } >> "$GITHUB_STEP_SUMMARY"
