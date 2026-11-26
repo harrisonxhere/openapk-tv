@@ -257,11 +257,15 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 - v8 设计落地：7 个视图全部重写，深浅双主题
 - 设置页「界面语言」切换（跟随系统 / 简体中文 / English），无需重启 Activity
 - 详情页：卡片按 OK 进详情，横幅移至文字下方并自适应撑满剩余高度
+- 正式发布密钥已生成（`D:/Harrison/keystores/openapk-tv/`，指纹 `b1c54698…b11d7183`），
+  本地与 CI 共用；CI 用 Secrets `KEYSTORE_B64` / `STORE_PASSWORD` / `KEY_PASSWORD`
+- 发版走 CI：推 `v*` tag 自动构建 + 发 Release，日志在 `docs/releases/<tag>.md`（双语）
 
 **未做 / 下一轮候选**
 - 2,923 条应用描述仍是英文，中文关键词搜索命中率低 → 需要独立的中文描述层，**不要改上游 catalog.json**
 - 「下载队列」「收藏」仍是 toast 演示；筛选面板未实现
-- release 签名包未出（当前 debug 签名，`keystore.properties` 未创建）
+- v1.0.0 已下架（旧品牌名）；已装 v1.0.0 / v1.0.1（debug 签名）的机器要装新密钥签的包，
+  **必须先卸载** —— 之后再不用卸载
 - `docs/screenshots/` 里上游旧截图品牌已过时
 
 ---
