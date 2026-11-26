@@ -32,6 +32,10 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
+      # compileSdk 37 不一定在 runner 镜像里，缺了就现装（已装则会跳过）
+      - name: 准备 Android SDK 组件
+        run: sdkmanager "platforms;android-37" "platform-tools"
+
       - uses: gradle/actions/setup-gradle@v4
 
       # tag 与 build.gradle.kts 的版本号必须一致，否则发出去的包版本对不上 tag
@@ -77,9 +81,9 @@ jobs:
           fi
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            # tag 重推 / 重跑：覆盖附件，标题与正文对齐仓库里的版本
+            # tag 重推 / 重跑：覆盖附件，标题与正文对齐仓库里的版本；顺手把误建的草稿发布出去
             gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
-            gh release edit "$TAG" --title "$TITLE" "${NOTES_ARGS[@]}"
+            gh release edit "$TAG" --title "$TITLE" --draft=false --latest "${NOTES_ARGS[@]}"
           else
             gh release create "$TAG" "$APK" "$APK.sha256" \
               --title "$TITLE" "${NOTES_ARGS[@]}" --verify-tag --latest
