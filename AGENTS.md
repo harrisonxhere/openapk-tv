@@ -2,7 +2,7 @@
 
 > 给任何代码助手（Claude Code / Cursor / Codex / Copilot …）的第一份文件。
 > 读完这一页就能动手改代码，不必翻历史聊天记录。
-> 最后更新：2026-11-21 · 对应版本 1.0.0 (versionCode 11)
+> 最后更新：2026-11-26 · 对应版本 1.0.1 (versionCode 12)
 
 ---
 
@@ -154,7 +154,7 @@ adb shell am force-stop app.tvhub && adb shell am start -n app.tvhub/.MainActivi
 ```kotlin
 // app/build.gradle.kts
 versionCode = 11        // 每次发版 +1，与 versionName 无关
-versionName = "1.0.0"   // semver，给人看的
+versionName = "1.0.1"   // semver，给人看的
 ```
 
 `versionCode` **只增不减**：真机装过上游版本 0.6.0（vc10），比它小的包直接

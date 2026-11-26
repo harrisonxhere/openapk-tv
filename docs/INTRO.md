@@ -41,7 +41,7 @@ OpenAPK TV 把这一套压成三步：**打开 → 找到 → 按确定**。目�
 需要 Android 9（API 28）以上：Android TV、Google TV、Fire TV、各类带遥控的 Android 盒子。
 
 ```bash
-adb install TVHub-1.0.0.apk
+adb install openapk-tv-1.0.1.apk
 ```
 
 或在电视上用 Downloader 输入 Release 地址。首次安装系统会问是否允许 OpenAPK TV 安装应用，允许一次即可。

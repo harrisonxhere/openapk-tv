@@ -444,12 +444,12 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 ## 8. 关于 `AboutScreen`
 
 设置页「关于」按 OK 进入的独立二级页（`about = true` 时盖在设置之上，`tab` 仍是 Settings，
-所以返回键回到设置，不用记来源）。无顶栏，`SubHead(关于, v1.0.0)` 在 (0,0)。
+所以返回键回到设置，不用记来源）。无顶栏，`SubHead(关于, v1.0.1)` 在 (0,0)。
 
 ```
 (0,96)   品牌块 h96：Brand(84) + 「OpenAPK TV」32sp + 一句话定位 12.5sp（Fg3）
 (0,216)  Column，间距 16，宽 1152，两栏各 567（间距 18），每格 92dp
-        ├─ 目录 2,923 款应用 · 13 个分类   ｜ 版本 v1.0.0
+        ├─ 目录 2,923 款应用 · 13 个分类   ｜ 版本 v1.0.1
         ├─ 许可 GPL-3.0-only · 源码公开     ｜ 数据来源 各项目 GitHub Releases · 每日采集
         ├─ 项目仓库 github.com/… ›（唯一可点）｜ 设备 MODEL · Android 16 (API 36)
 (0,556)  许可与出处小字 10.5sp：衍生声明 3 行 + 致谢 3 行（C.Fg3 / 78%）
