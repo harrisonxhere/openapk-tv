@@ -143,7 +143,8 @@ adb -s 192.168.1.46:5555 install -r -t app/build/outputs/apk/debug/app-debug.apk
 ```bash
 # 1. 改版本号（两处一起改，CI 会校验 tag 与 versionName 是否一致）
 #    app/build.gradle.kts: versionCode +1，versionName "1.0.2"
-# 2. 写更新日志：docs/releases/v1.0.2.md（没有这个文件就退回自动生成的 notes）
+# 2. 写更新日志：docs/releases/v1.0.2.md（**一份文件双语：英文在上、中文在下**，
+#    骨架见 docs/releases/TEMPLATE.md；没有这个文件就退回自动生成的 notes）
 # 3. 推
 git commit -am "release: v1.0.2（versionCode 13）"
 git tag -a v1.0.2 -m "v1.0.2"

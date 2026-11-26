@@ -180,6 +180,9 @@ versionName = "1.0.1"   // semver，给人看的
 `.github/workflows/release.yml` 会校验 tag 与 `versionName` 一致、构建 release 包、发 Release
 （附件 `openapk-tv-<ver>.apk` + `.sha256`，标题 `OpenAPK TV <ver>`，正文取那份 md）。
 
+更新日志**一份文件双语**：英文在上、`---` 分隔、中文在下，各写一句概括 + 最多 5 条，安装说明只留最后一段。
+骨架与规则见 `docs/releases/TEMPLATE.md`（用户要求：简短，别写成 changelog 论文）。
+
 ```bash
 git tag -a v1.0.2 -m "v1.0.2"
 git push origin main && git push origin v1.0.2   # 先 main 后 tag，别再 --follow-tags
