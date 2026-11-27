@@ -433,6 +433,30 @@ def main():
             "s": s.isoformat() if s else "",
         }
 
+    # 3.5 沿用上一份索引里「本轮没查」的条目。
+    # 每轮只查到期 / 热层的一部分应用，若只写本轮结果，没轮到的应用会从索引里消失，
+    # 客户端和网页就会退回 catalog 快照里的旧版本（例：SmartTube 32.80s 被 32.71s 覆盖）。
+    picked_ids = {a["id"] for a in picked}
+    by_id = {a["id"]: a for a in all_apps}
+    prev_plain = os.path.join(args.out, "updates.json")
+    carried = 0
+    # 抽样自检是隔离的（state 也不读），就别把真实索引掺进来
+    if not args.sample and os.path.exists(prev_plain):
+        try:
+            with open(prev_plain, encoding="utf-8") as f:
+                prev_apps = (json.load(f) or {}).get("apps") or {}
+        except Exception as e:
+            print("  ! 读取上一份索引失败，本轮只写新结果：%s" % e, file=sys.stderr)
+            prev_apps = {}
+        for aid, e in prev_apps.items():
+            app = by_id.get(aid)
+            if aid in picked_ids or app is None or aid in entries:
+                continue
+            if (compare(e.get("tag"), app.get("version")) or 0) > 0:
+                entries[aid] = e
+                carried += 1
+    print("  沿用上一份索引 %d 条" % carried)
+
     if args.limit and len(entries) > args.limit:
         keep = sorted(entries.items(), key=lambda kv: kv[1]["date"], reverse=True)[: args.limit]
         entries = dict(keep)

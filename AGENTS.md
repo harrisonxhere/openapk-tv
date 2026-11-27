@@ -245,6 +245,10 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 19. **Dialog 不要盖在启动页上**：主窗口还没拿到焦点时再叠一个 Dialog 窗口，输入事件无处可去，
     实测直接 ANR（`Input dispatching timed out, no focused window`）。`MirrorAskDialog` 必须等
     `Catalog.apps` 非空之后再弹；这也是它排在 `if (Catalog.apps.isEmpty()) return` 之后的原因。
+20. **`updates.json` 是全量快照，不是增量**：`fetch_updates.py` 每轮只查「到期 / 热层」的一部分应用，
+    如果只写本轮结果，没轮到的应用就会从索引里消失，客户端与网页一起退回 catalog 快照里的旧版本
+    （实测 SmartTube 32.80s 被 32.71s 覆盖）。所以「3.5 沿用上一份索引」这一步不能删：
+    本轮没查到、且上一份里的 tag 仍比 catalog 版本新的条目，原样带过来。`--sample` 抽样自检时跳过这步。
 
 ---
 
