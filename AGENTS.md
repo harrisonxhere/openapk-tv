@@ -69,7 +69,7 @@
 ## 4. 目录结构
 
 ```
-tv-hub/
+openapk-tv/
 ├── AGENTS.md                  ← 本文件（AI 入口）
 ├── CLAUDE.md                  ← 指针，内容同 AGENTS.md
 ├── README.md                  ← 项目介绍（**英文，默认**，GitHub 首屏；含衍生版声明，勿删）
@@ -142,7 +142,7 @@ tv-hub/
 
 ```bash
 # 编译（约 1–2 分钟）
-cd D:/Harrison/Code/tv-hub
+cd D:/Harrison/Code/openapk/openapk-tv
 ./gradlew :app:assembleDebug
 
 # 产物

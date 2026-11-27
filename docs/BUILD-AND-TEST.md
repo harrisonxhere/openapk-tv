@@ -1,6 +1,6 @@
 # 构建、调试与验收
 
-> 目标环境：Windows + Git Bash。命令都在项目根目录 `D:/Harrison/Code/tv-hub` 下执行。
+> 目标环境：Windows + Git Bash。命令都在项目根目录 `D:/Harrison/Code/openapk/openapk-tv` 下执行。
 
 ---
 
