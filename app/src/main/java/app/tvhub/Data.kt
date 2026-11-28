@@ -510,6 +510,7 @@ private val roomNames = mapOf(
     "Launchers" to R.string.room_launchers, "Screensavers" to R.string.room_screensavers, "VPN & network" to R.string.room_vpn,
     "Streaming" to R.string.room_streaming, "App stores" to R.string.room_stores, "Games" to R.string.room_games,
     "Music" to R.string.room_music, "Video" to R.string.room_video, "Smart home" to R.string.room_home,
+    "Video players" to R.string.room_local_players,
     "Photos" to R.string.room_photos, "Reading" to R.string.room_reading, "Learning" to R.string.room_learning,
     "Chat & social" to R.string.room_chat, "AI" to R.string.room_ai, "Browsers" to R.string.room_browsers,
     "Files & downloads" to R.string.room_files, "Tools" to R.string.room_tools, "Other" to R.string.room_other,

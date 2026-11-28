@@ -124,6 +124,7 @@ class FocusHandoff {
 private fun chipColor(k: String) = when (k) {
     "Streaming" -> Color(0xFFC86BA0)
     "Video" -> Color(0xFFE0795C)
+    "Video players" -> Color(0xFF4FA3A0)
     "Launchers" -> Color(0xFF5B8FC9)
     "Tools" -> Color(0xFFA9906B)
     "VPN & network" -> Color(0xFF6D8BC7)

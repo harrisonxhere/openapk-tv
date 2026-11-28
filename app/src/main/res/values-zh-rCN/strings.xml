@@ -36,6 +36,7 @@
     <string name="room_games">游戏</string>
     <string name="room_music">音乐</string>
     <string name="room_video">视频播放器</string>
+    <string name="room_local_players">本地播放器</string>
     <string name="room_home">智能家居</string>
     <string name="room_photos">相册</string>
     <string name="room_reading">阅读</string>

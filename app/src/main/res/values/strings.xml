@@ -34,6 +34,7 @@
     <string name="room_games">Games</string>
     <string name="room_music">Music</string>
     <string name="room_video">Video players</string>
+    <string name="room_local_players">Local players</string>
     <string name="room_home">Smart home</string>
     <string name="room_photos">Photos</string>
     <string name="room_reading">Reading</string>

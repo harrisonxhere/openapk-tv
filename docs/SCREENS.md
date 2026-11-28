@@ -482,16 +482,17 @@ Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
 
 12 个组：`video` 影视、`photos` 图片、`music` 音乐、`games` 游戏、`reading` 阅读、
 `social` 社交、`browser` 浏览、`home` 家居、`desktop` 桌面、`stores` 应用商店、
-`ai` AI 工具、`system` 系统，外加 `other` 其它（826 款，不进一级磁贴）。
+`ai` AI 工具、`system` 系统，外加 `other` 其它（848 款，不进一级磁贴）。
 
 合并关系：`Streaming`+`Video`→video、`Reading`+`Learning`→reading、`Launchers`+`Screensavers`→desktop、
-`Tools`+`Files & downloads`+`VPN & network`→system。
+`Tools`+`Files & downloads`+`VPN & network`→system。2026-11-22 快照起 video 下多一个二级 `Video players`
+（88 款本地播放器，显示名走 `room_local_players`），与 `Video` 分开展示。
 
 **重新分配用 `tools/reclassify.py`**，不手改 JSON：
 
-- 原始数据备份在 `data/catalog-source-2026-11-20.json`，脚本只在备份不存在时创建，不覆盖。
+- 原始数据备份在 `data/catalog-source-2026-11-22.json`，脚本只在备份不存在时创建，不覆盖。
 - `python tools/reclassify.py` 只出报告，`--write` 才写入。
-- 写入后校验规则：按 `id` 对齐逐字段比对，除新增 `group`/`sub` 外**任何字段都不许变**；总数必须仍是 2923。
+- 写入后校验规则：按 `id` 对齐逐字段比对，除新增 `group`/`sub` 外**任何字段都不许变**；总数必须仍是 3582。
 - 影视→音乐的迁移只在「名称/包名」上判（`com.x.music`、`Name Radio`），描述里提到 music 的不算，
   否则 Jellyfin、mpv-android 这类会被拖进音乐。`radio` 用词边界匹配，避免 `radiokot` 这种包名误判。
 
