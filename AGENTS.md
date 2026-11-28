@@ -2,7 +2,7 @@
 
 > 给任何代码助手（Claude Code / Cursor / Codex / Copilot …）的第一份文件。
 > 读完这一页就能动手改代码，不必翻历史聊天记录。
-> 最后更新：2026-11-28 · 对应版本 1.0.2 (versionCode 13)
+> 最后更新：2026-11-28 · 对应版本 1.0.3 (versionCode 14)
 
 ---
 
@@ -187,8 +187,8 @@ versionName = "1.0.1"   // semver，给人看的
 骨架与规则见 `docs/releases/TEMPLATE.md`（用户要求：简短，别写成 changelog 论文）。
 
 ```bash
-git tag -a v1.0.2 -m "v1.0.2"
-git push origin main && git push origin v1.0.2   # 先 main 后 tag，别再 --follow-tags
+git tag -a v1.0.3 -m "v1.0.3"
+git push origin main && git push origin v1.0.3   # 先 main 后 tag，别再 --follow-tags
 ```
 
 **不要**再去网页手工建 Release：标题、正文、附件三样都容易漏（v1.0.1 就漏成了草稿）。
