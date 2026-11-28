@@ -3,8 +3,8 @@ name: update-index
 # 两个节奏，查的不是同一批仓库：
 #   due 轮（每天）：所有「到期」的 —— 高频应用每天、低频应用 2/4/7 天一次
 #   hot 轮（每 6 小时）：只碰「刚发过版」的那几十个，确认有没有 hotfix
-# 为什么不都每天全量：2923 个仓库 × 1 次请求，占 REST 额度（5000/小时）的 58%，
-# 其中 7% 是一年以上没动过的。分层后稳态约 1900 次/天，省三分之一，
+# 为什么不都每天全量：3582 个仓库 × 1 次请求，占 REST 额度（5000/小时）的 72%，
+# 其中 7% 是一年以上没动过的。分层后稳态约 1900 次/天，省一半，
 # 而低频应用本来也不需要这么快知道。
 on:
   schedule:
@@ -18,6 +18,11 @@ on:
         options: [due, hot, all]
         default: due
   push:
+    # 必须限定分支：`paths` 过滤器对 tag 推送不生效，只写 paths 的话每次打 v* tag
+    # 都会顺带跑一轮 —— 而且 checkout 出来是 tag 的游离 HEAD，最后 `git push` 必然
+    # 报 "not currently on a branch"（v1.0.2 / v1.0.3 的两次失败都是这个原因）。
+    branches:
+      - main
     paths:
       - "tools/fetch_updates.py"
       - ".github/workflows/updates.yml"
