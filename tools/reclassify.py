@@ -20,11 +20,12 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
-BACKUP = os.path.join(ROOT, "data", "catalog-source-2026-11-20.json")
+BACKUP = os.path.join(ROOT, "data", "catalog-source-2026-11-22.json")
 
 GROUP_OF = {
     "Streaming": "video",
     "Video": "video",
+    "Video players": "video",
     "Photos": "photos",
     "Music": "music",
     "Games": "games",
