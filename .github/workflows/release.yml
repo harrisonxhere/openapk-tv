@@ -33,11 +33,18 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
-
-      # compileSdk 37 不一定在 runner 镜像里，缺了就现装（已装则会跳过）
+      # 不用 android-actions/setup-android：它 2026-11-28 起连续两次在 runner 上失败。
+      # ubuntu-latest 镜像已带 SDK 与 cmdline-tools，直接用现成的就够了。
+      # compileSdk 37 不一定在镜像里，缺了就现装（已装会跳过）。
       - name: 准备 Android SDK 组件
-        run: sdkmanager "platforms;android-37" "platform-tools"
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "SDK root: $SDK"
+          test -d "$SDK" || { echo "::error::runner 上没有 Android SDK"; exit 1; }
+          yes | sdkmanager --sdk_root="$SDK" --licenses > /dev/null 2>&1 || true
+          sdkmanager --sdk_root="$SDK" "platforms;android-37" "platform-tools"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
 
       - uses: gradle/actions/setup-gradle@v4
 
