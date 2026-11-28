@@ -43,6 +43,9 @@
    （1080p 电视 960×540dp → 缩放 0.75）。位置一律用 `Modifier.at(x, y)`（= `offset(x.dp, y.dp)`），
    **不要**在视图内部再引入自适应布局；滚动容器只允许出现在两处：`RoomScreen` 的 `LazyVerticalGrid`
    和搜索结果的 `LazyColumn`，别处加滚动会破坏设计稿的整屏构图。
+   画布只吃**安全区**（`WindowInsets.systemBars ∪ displayCutout`），墙纸 `Wall` 仍铺满整块物理屏幕：
+   TV 的 insets 恒为 0（不受影响），手机贴高时顶栏/齿轮不再落进状态栏的触摸带。IME 不算进安全区，
+   否则软键盘一弹整屏构图会跳。
 4. **遥控器优先** 大屏 10-foot UI：只有焦点，没有鼠标、没有 hover、没有滚动条。
    所有可点元素必须包在 `Focusable {}` 里，焦点态用 `Modifier.ring(...)`。
 5. **整图不裁切** 用户明确要求 banner / 封面「整张原图显示」。
@@ -113,10 +116,10 @@ openapk-tv/
 
 | 文件 | 行数 | 职责 |
 |---|---|---|
-| `MainActivity.kt` | 58 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
-| `Data.kt` | 996 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
-| `Ui.kt` | 552 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
-| `Screens.kt` | 3556 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
+| `MainActivity.kt` | 73 | 唯一 Activity。初始化顺序固定：`Prefs.init` → `L.init` → `Images.init`（顺序错了语言/主题会失效） |
+| `Data.kt` | 997 | `Catalog`（读 assets/catalog.json）、`App`/`Apk` 模型、`pickApk()` ABI 选择、`L`+`str()` 本地化、`Fmt` 格式化、`Images` 内存+磁盘图片缓存、`Device` 已安装列表、`Prefs` 偏好 |
+| `Ui.kt` | 571 | 设计系统层：`DesignCanvas` 坐标系、`C` 颜色令牌、`Wall` 背景、`T` 字体、`Icons` 24×24 自绘图标、`Focusable`、`Modifier.ring`、`cardShadow`、`RoundBtn`、`GlassPill`、`Ring` |
+| `Screens.kt` | 3560 | 根组合 `TvHub()` + `TopBar` + 8 个视图 + 全部子部件 + 图片渲染工具（`art` / `MaskedArt` / `edgeColors` / `vivid` / `wallTints`） |
 | `Installer.kt` | 274 | 下载 → `PackageInstaller` 会话写入 → 结果 `BroadcastReceiver` → 状态机（`Job`）；`startSelfUpdate()` 是自更新入口，跳过签名比对 |
 | `Mirror.kt` | 67 | 下载源三档（自动 / 直连 / 镜像）+ 系统语言判定：把 `github.com` / `raw.githubusercontent.com` 重写成镜像候选（`gh-proxy.com` → `ghproxy.net` → 原链），自动档只在简中系统走镜像 |
 | `UpdateIndex.kt` | 229 | 更新索引：拉 `updates.json.gz`（ETag/304、缓存 `filesDir/updates`）、按 tag 数字段判定「有新版本」、`effective(app)` 把最新版本与 APK 叠加到 catalog 条目上；`self` 段用于 OpenAPK TV 自更新 |

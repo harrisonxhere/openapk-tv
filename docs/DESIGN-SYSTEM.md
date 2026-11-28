@@ -9,16 +9,25 @@
 
 ```kotlin
 @Composable
-fun DesignCanvas(content: @Composable BoxScope.() -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF06080B)), contentAlignment = Alignment.Center) {
-        val d = LocalDensity.current
-        val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)   // 0.75 on 1080p TV
-        CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
-            Box(Modifier.size(1280.dp, 720.dp), content = content)
+fun DesignCanvas(tints: List<Color>? = null, content: @Composable BoxScope.() -> Unit) {
+    Box(Modifier.fillMaxSize().background(if (C.dark) Color(0xFF06080B) else C.Wall)) {
+        if (tints != null) Wall(tints)                    // 墙纸铺满整屏，含系统栏底下
+        val safe = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(safe), contentAlignment = Alignment.Center) {
+            val d = LocalDensity.current
+            val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)   // 0.75 on 1080p TV
+            CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
+                Box(Modifier.size(1280.dp, 720.dp), content = content)
+            }
         }
     }
 }
 ```
+
+**安全区**：等比框只按「扣掉系统栏」的区域算。TV 的 insets 恒为 0，所以电视上没有任何位移；
+手机横屏贴高时，画布高度让出状态栏/导航栏，顶栏和齿轮就不会掉进状态栏那一 24dp 的触摸带里
+（实测：之前点齿轮没反应，就是被系统下拉手势吃掉了）。IME 故意不算进去——软键盘弹出时画布若跟着缩，
+整屏构图会抖；搜索是遥控器 / 硬件键盘输入，不需要为输入法让位。
 
 **规则：设计稿里是 863 像素，代码里就写 `863.dp`。** 不要换算、不要用 `weight` 去"自适应"。
 

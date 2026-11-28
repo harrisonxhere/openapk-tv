@@ -14,11 +14,16 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -77,15 +82,26 @@ fun DesignCanvas(tints: List<Color>? = null, content: @Composable BoxScope.() ->
        而且深灰壳的 logo 贴在近黑底上等于没有轮廓（实拍确认）。
        tints 非空时，先在整个物理屏幕（缩放之前）铺一层渐变墙纸——这样手机等非16:9设备上，
        1280×720 画布两侧/上下缩放后留出的空间，看到的是渐变延伸过去的颜色，而不是纯黑/纯色硬边。 */
-    BoxWithConstraints(
-        Modifier.fillMaxSize().background(if (C.dark) Color(0xFF06080B) else C.Wall),
-        contentAlignment = Alignment.Center,
-    ) {
+    Box(Modifier.fillMaxSize().background(if (C.dark) Color(0xFF06080B) else C.Wall)) {
+        /* 墙纸铺满整块物理屏幕，包括状态栏/导航栏底下——系统栏是透明的，
+           底下必须是色雾而不是一块纯黑，否则顶部会切出一条硬边。 */
         if (tints != null) Wall(tints)
-        val d = LocalDensity.current
-        val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)
-        CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
-            Box(Modifier.size(1280.dp, 720.dp), content = content)
+
+        /* 画布只吃「安全区」：状态栏、导航栏、挖孔占掉的高度不算进 1280×720 的等比框。
+           原因很具体：画布按 min(w/1280, h/720) 贴高时，顶栏起点在画布 y=34，手机上正好落在
+           状态栏那 24dp 带里，齿轮被系统下拉手势吃掉、点不动；底部同理压住导航栏。
+           TV 上 insets 恒为 0，这一步不产生任何位移，设计稿坐标不用改。
+           IME 故意不算进来：软键盘弹出时画布若跟着缩，整屏构图会跳。 */
+        val safe = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        BoxWithConstraints(
+            Modifier.fillMaxSize().windowInsetsPadding(safe),
+            contentAlignment = Alignment.Center,
+        ) {
+            val d = LocalDensity.current
+            val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)
+            CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {
+                Box(Modifier.size(1280.dp, 720.dp), content = content)
+            }
         }
     }
 }
