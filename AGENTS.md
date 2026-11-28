@@ -2,7 +2,7 @@
 
 > 给任何代码助手（Claude Code / Cursor / Codex / Copilot …）的第一份文件。
 > 读完这一页就能动手改代码，不必翻历史聊天记录。
-> 最后更新：2026-11-26 · 对应版本 1.0.1 (versionCode 12)
+> 最后更新：2026-11-28 · 对应版本 1.0.2 (versionCode 13)
 
 ---
 
@@ -81,7 +81,7 @@ openapk-tv/
 │   ├── build.gradle.kts
 │   └── src/main/
 │       ├── AndroidManifest.xml
-│       ├── assets/catalog.json        ← 3.3MB 目录快照，2923 款应用 / 18 分类
+│       ├── assets/catalog.json        ← 4.1MB 目录快照，3582 款应用 / 19 分类（快照 2026-11-22）
 │       ├── java/app/tvhub/            ← 全部源码，7 个文件 3300 行
 │       └── res/values{,-zh-rCN}/strings.xml
 ├── art/                       ← 品牌标识（设计真源）
@@ -92,7 +92,7 @@ openapk-tv/
 │   └── source/                ← logo-1024.png（logo.svg 的 Chrome 渲染产物）+ 原始 svg 备份
 ├── .github/workflows/updates.yml  ← 每日抓取应用更新 → data/updates/ + updates release
 ├── .github/workflows/release.yml  ← 推 v* tag 即构建并发版（附件 + sha256，正文取 docs/releases/）
-├── data/catalog-source-2026-11-20.json  ← 上游目录原始快照（重新生成 catalog.json 用）
+├── data/catalog-source-2026-11-22.json  ← 上游目录原始快照（含 downloads/perms 等全字段，重新生成 catalog.json 用）
 ├── docs/
 │   ├── ARCHITECTURE.md        ← 数据流、状态管理、安装链路
 │   ├── DESIGN-SYSTEM.md       ← 设计坐标系、颜色令牌、焦点环、图片渲染
@@ -234,7 +234,8 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 9. **`Fmt.gbNum()` 返回纯数字**，单位在字符串资源里拼。之前用 `gb().substringBefore(" GB")` 依赖英文字面量，切中文就崩。
 10. **热词 / 时段是 `<string-array>`**（`hot_words`、`recent_times`），不是 Kotlin 常量。
 11. **品牌标识有两份，别搞混**：顶栏/启动页走 `Ui.kt` 的 `logoMark(shell, screen)`（真源 `art/logo-mark.svg`，白电视壳 + 绿渐变笑脸，620×542），是**彩色**向量，必须用 `Brand(dp)` 渲染 —— 用 `Ico()` 上 tint 会把壳和脸染成同一个颜色，直接看不见。另外**颜色随主题**，是两层：深色白壳、屏幕留空；浅色壳 `#363B45` + 屏幕填 `#0B1017`。浅色只换壳色不够 —— 屏幕透出墙色时绿脸浮在浅灰上，整枚像线框图标，压不住 17sp 粗体字标（实拍对比过）。屏幕矩形必须与壳的镂空同形（`LOGO_SCREEN`），差一单位就露白边。启动器图标与 TV 横幅走另一条链：`art/logo.svg` → Chrome 渲染 `art/source/logo-1024.png` → `python art/generate_icons.py`（仍是带绿圆底的旧徽标）。改应用内标识只动前者，改桌面图标才动后者。
-12. **应用首次冷启动要 ~20s** 读 3.3MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
+    **手机/Android TV 启动器实际用的是自适应图标**（`mipmap-anydpi-v26/ic_launcher(.round).xml`，背景 `#FFFFFF`）：前景图由官网 `openapk-web/public/logo.svg` 经 Chrome 渲染成 `art/source/logo-web.png`，再跑 `python art/generate_adaptive_icon.py` 出 5 档前景 + 单色剪影。只想调图形大小就改脚本里的 `WIDTH_DP`（当前 48dp，可见区 72dp 的 67%）。
+12. **应用首次冷启动要 ~20s** 读 4.1MB catalog（模拟器 x86 无加速更慢）。截图前 sleep 不够会拍到 Splash。
 13. **不要改 `applicationId`**：`app.tvhub` 与上游 `io.github.wingedpanther.openshelf` 已是不同应用，可并存。再改会让用户已装版本变成孤儿。
 14. **自更新看的是 `versionName`，不是 `versionCode`**：索引里的 `self.tag` 只带版本号，`selfNewer()` 比数字段。发版时**两个都要改** —— 只 bump `versionCode` 的话，用户永远看不到「发现新版本」。
 15. **`self` 段不跟着应用调度走**：`fetch_updates.py` 在「无到期应用」时会单独走 `refresh_self()`。如果把它塞回主流程的 `if not picked: return` 后面，自更新就要等某个应用到期才生效（踩过）。
@@ -266,7 +267,7 @@ Focusable(onClick = onOpen, modifier = Modifier.ring(false, 20.dp), requester = 
 - 发版走 CI：推 `v*` tag 自动构建 + 发 Release，日志在 `docs/releases/<tag>.md`（双语）
 
 **未做 / 下一轮候选**
-- 2,923 条应用描述仍是英文，中文关键词搜索命中率低 → 需要独立的中文描述层，**不要改上游 catalog.json**
+- 3,582 条应用描述仍是英文，中文关键词搜索命中率低 → 需要独立的中文描述层，**不要改上游 catalog.json**
 - 「下载队列」「收藏」仍是 toast 演示；筛选面板未实现
 - v1.0.0 已下架（旧品牌名）；已装 v1.0.0 / v1.0.1（debug 签名）的机器要装新密钥签的包，
   **必须先卸载** —— 之后再不用卸载
