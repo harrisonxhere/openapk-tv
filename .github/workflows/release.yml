@@ -112,32 +112,31 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "apk=$APK" >> "$GITHUB_OUTPUT"
 
+      # 用 action 而不是 gh CLI：create / 已存在时覆盖附件这两条路径都由它处理，
+      # 也免得自己拼 idempotent 逻辑（gh 版在 2026-11-28 连续失败且拿不到日志）。
       - name: 发布 Release
+        id: pub
+        uses: softprops/action-gh-release@v2
+        with:
+          name: OpenAPK TV ${{ steps.pack.outputs.version }}
+          body_path: docs/releases/${{ github.ref_name }}.md
+          files: |
+            ${{ steps.pack.outputs.apk }}
+            ${{ steps.pack.outputs.apk }}.sha256
+          draft: false
+          make_latest: true
+          fail_on_unmatched_files: true
+
+      # 发布失败时把原因贴成 commit comment，公共仓库不用登录就能看到（Actions 日志要鉴权）
+      - name: 贴出失败原因
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          TAG="$GITHUB_REF_NAME"
-          VERSION="${{ steps.pack.outputs.version }}"
-          APK="${{ steps.pack.outputs.apk }}"
-          TITLE="OpenAPK TV $VERSION"
-          NOTES="docs/releases/${TAG}.md"
-          if [ -f "$NOTES" ]; then
-            echo "用 $NOTES 作为更新日志"
-            NOTES_ARGS=(--notes-file "$NOTES")
-          else
-            echo "没有 $NOTES，退回自动生成 notes"
-            NOTES_ARGS=(--generate-notes)
-          fi
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            # tag 重推 / 重跑：覆盖附件，标题与正文对齐仓库里的版本；顺手把误建的草稿发布出去
-            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber
-            gh release edit "$TAG" --title "$TITLE" --draft=false --latest "${NOTES_ARGS[@]}"
-          else
-            gh release create "$TAG" "$APK" "$APK.sha256" \
-              --title "$TITLE" "${NOTES_ARGS[@]}" --verify-tag --latest
-          fi
+          BODY=$(printf 'release 发布失败（run %s）\n\n```\n%s\n```' \
+            "$GITHUB_RUN_ID" "$(tail -c 2000 "$RUNNER_TEMP/publish.log" 2>/dev/null || echo '无日志')")
+          gh api -X POST "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
+            -f body="$BODY" || true
 
       - name: 摘要
         run: |
