@@ -328,6 +328,19 @@
     <string name="toast_queue">Download queue · demo</string>
     <string name="toast_fav">Favourites · demo</string>
 
+    <!-- 主推卡卖点：目录里的 note 是英文原文，按语言各写一句 -->
+    <string name="hero_note_free">Open-source</string>
+    <string name="hero_note_localsend">Open-source AirDrop alternative for any device</string>
+    <string name="hero_note_v2rayng">Proxy client for Android with many protocols</string>
+    <string name="hero_note_newpipe">Lightweight video front end, no ads, background play</string>
+    <string name="hero_note_smarttube">Video client built for the TV, ad-free with gestures</string>
+    <string name="hero_note_obtainium">Get updates straight from the project source</string>
+    <string name="hero_note_unciv">Open-source Civilization V remake, turn-based strategy</string>
+    <string name="hero_note_flclash">Multi-platform proxy client built on Clash Meta</string>
+    <string name="hero_note_shadowsocks">Shadowsocks proxy client for Android</string>
+    <string name="hero_note_hiddify">Multi-platform proxy with sing-box and Xray</string>
+    <string name="hero_note_mytv">Live TV client that works right after install</string>
+
     <string-array name="hot_words">
         <item>clash</item>
         <item>player</item>

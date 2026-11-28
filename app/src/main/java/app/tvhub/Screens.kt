@@ -1074,7 +1074,7 @@ private fun BoxScope.HeroText(a: App) {
     ) {
         T(a.name, 36.sp, weight = FontWeight.Bold, color = Color.White, tight = true, maxLines = 1)
         Spacer(Modifier.height(10.dp))
-        T(noteCN(a), 13.sp, color = Color.White.copy(alpha = 0.72f), maxLines = 2)
+        T(heroNote(a), 13.sp, color = Color.White.copy(alpha = 0.72f), maxLines = 2)
     }
 }
 
@@ -1098,19 +1098,19 @@ private fun BoxScope.HeroDots(count: Int, active: Int) {
     }
 }
 
-/** 主推卡中文卖点：data.js note 是英文原文，10-foot 下换成中文短句 */
-private fun noteCN(a: App): String = when (a.id) {
-    "localsend-localsend" -> "开源跨平台的 AirDrop 替代，设备间安全互传文件"
-    "2dust-v2rayng" -> "Android 平台网络代理客户端，支持多种协议"
-    "teamnewpipe-newpipe" -> "轻量开源视频前端，无广告后台播放"
-    "yuliskov-smarttube" -> "为电视打造的视频客户端，去广告与手势操控"
-    "imranr98-obtainium" -> "从项目源直接获取更新，跳过应用商店"
-    "yairm210-unciv" -> "开源文明 V 复刻，回合制策略博弈"
-    "chen08209-flclash" -> "基于 Clash Meta 的多平台代理客户端"
-    "shadowsocks-shadowsocks-android" -> "Android 平台 Shadowsocks 代理客户端"
-    "hiddify-hiddify-app" -> "多平台代理客户端，支持 Sing-box 与 X-ray"
-    "lizongying-my-tv" -> "电视直播客户端，安装即可观看"
-    else -> roomName(a.room) + " · 开源免费应用"
+/** 主推卡卖点：目录里的 note 是英文原文，10-foot 下按当前语言取一句短文案（见 values/hero_note_*） */
+private fun heroNote(a: App): String = when (a.id) {
+    "localsend-localsend" -> str(R.string.hero_note_localsend)
+    "2dust-v2rayng" -> str(R.string.hero_note_v2rayng)
+    "teamnewpipe-newpipe" -> str(R.string.hero_note_newpipe)
+    "yuliskov-smarttube" -> str(R.string.hero_note_smarttube)
+    "imranr98-obtainium" -> str(R.string.hero_note_obtainium)
+    "yairm210-unciv" -> str(R.string.hero_note_unciv)
+    "chen08209-flclash" -> str(R.string.hero_note_flclash)
+    "shadowsocks-shadowsocks-android" -> str(R.string.hero_note_shadowsocks)
+    "hiddify-hiddify-app" -> str(R.string.hero_note_hiddify)
+    "lizongying-my-tv" -> str(R.string.hero_note_mytv)
+    else -> roomName(a.room) + " · " + str(R.string.hero_note_free)
 }
 
 @Composable

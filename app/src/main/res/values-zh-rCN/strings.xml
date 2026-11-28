@@ -327,6 +327,19 @@
     <string name="toast_queue">下载队列 · 演示</string>
     <string name="toast_fav">收藏 · 演示</string>
 
+    <!-- 主推卡卖点：目录里的 note 是英文原文，10-foot 下换成中文短句 -->
+    <string name="hero_note_free">开源免费应用</string>
+    <string name="hero_note_localsend">开源跨平台的 AirDrop 替代，设备间安全互传文件</string>
+    <string name="hero_note_v2rayng">Android 平台网络代理客户端，支持多种协议</string>
+    <string name="hero_note_newpipe">轻量开源视频前端，无广告后台播放</string>
+    <string name="hero_note_smarttube">为电视打造的视频客户端，去广告与手势操控</string>
+    <string name="hero_note_obtainium">从项目源直接获取更新，跳过应用商店</string>
+    <string name="hero_note_unciv">开源文明 V 复刻，回合制策略博弈</string>
+    <string name="hero_note_flclash">基于 Clash Meta 的多平台代理客户端</string>
+    <string name="hero_note_shadowsocks">Android 平台 Shadowsocks 代理客户端</string>
+    <string name="hero_note_hiddify">多平台代理客户端，支持 Sing-box 与 X-ray</string>
+    <string name="hero_note_mytv">电视直播客户端，安装即可观看</string>
+
     <string-array name="hot_words">
         <item>clash</item>
         <item>播放器</item>
