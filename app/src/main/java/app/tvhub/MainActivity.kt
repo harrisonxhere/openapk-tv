@@ -8,10 +8,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        /* 沉浸式全屏：让内容延伸到状态栏/导航栏底下，否则系统栏区域会透出桌面壁纸，
+           在非16:9设备（尤其手机）上看起来像是背景没铺满。必须在 setContent 之前调用。 */
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         // Prefs 先起来，L 才知道该用哪种语言
         Prefs.init(this)
         /* 系统语言改过的话，Activity 会重建后走到这里：刚切成简体中文就问一次要不要换国内源。
@@ -26,6 +31,13 @@ class MainActivity : ComponentActivity() {
                没有配置索引地址时这两个调用都是空操作，不会发任何请求。 */
             LaunchedEffect(Unit) { UpdateIndex.refresh(applicationContext) }
             KeepScreenOnWhileInstalling()
+            /* 系统栏（状态栏/导航栏）图标颜色跟主题走：亮色背景用深色图标，暗色背景用浅色图标。
+               C.dark 是 Compose state，这里用 SideEffect 在每次重组后同步，覆盖手动切换主题的场景。 */
+            SideEffect {
+                val controller = WindowCompat.getInsetsController(window, window.decorView)
+                controller.isAppearanceLightStatusBars = !C.dark
+                controller.isAppearanceLightNavigationBars = !C.dark
+            }
             TvHub()
         }
     }

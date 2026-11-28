@@ -72,13 +72,16 @@ import kotlin.math.min
    于是下面所有尺寸都能直接抄原型的像素值，且换分辨率不跑版。
    ============================================================ */
 @Composable
-fun DesignCanvas(content: @Composable BoxScope.() -> Unit) {
+fun DesignCanvas(tints: List<Color>? = null, content: @Composable BoxScope.() -> Unit) {
     /* 底色跟主题走：启动页没有 Wall() 盖着，写死 #06080B 的话浅色主题会先黑一下再变亮，
-       而且深灰壳的 logo 贴在近黑底上等于没有轮廓（实拍确认）。 */
+       而且深灰壳的 logo 贴在近黑底上等于没有轮廓（实拍确认）。
+       tints 非空时，先在整个物理屏幕（缩放之前）铺一层渐变墙纸——这样手机等非16:9设备上，
+       1280×720 画布两侧/上下缩放后留出的空间，看到的是渐变延伸过去的颜色，而不是纯黑/纯色硬边。 */
     BoxWithConstraints(
         Modifier.fillMaxSize().background(if (C.dark) Color(0xFF06080B) else C.Wall),
         contentAlignment = Alignment.Center,
     ) {
+        if (tints != null) Wall(tints)
         val d = LocalDensity.current
         val s = min(maxWidth.value / 1280f, maxHeight.value / 720f)
         CompositionLocalProvider(LocalDensity provides Density(d.density * s, 1f)) {

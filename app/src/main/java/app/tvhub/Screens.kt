@@ -267,9 +267,8 @@ fun TvHub() {
         hero[Math.floorMod(heroIdx + 1, hero.size)].art.banner?.let { Images.load(it, HERO_WIDTH) }
     }
 
-    DesignCanvas {
+    DesignCanvas(tints) {
         Box(Modifier.fillMaxSize()) {
-            Wall(tints)
             Box(Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 30.dp)) {
                 Panel(
                     Modifier.fillMaxSize().onPreviewKeyEvent { e ->

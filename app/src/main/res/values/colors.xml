@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 自适应图标底色：与官网亮色首屏一致，避免启动器把图标塞进白色底板 -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>
