@@ -51,6 +51,12 @@
 5. **整图不裁切** 用户明确要求 banner / 封面「整张原图显示」。
    用 `ContentScale.Fit` + 左右羽化（`MaskedArt`），**不要**改成 `Crop` 或裁边。
 6. **安装不可绕过签名校验** `Installer.kt` 里 `certSha256` 与上游 APK 字节校验逻辑不要动。
+7. **发布签名不能换** 1.0.1 及更早的包是 CI 用 runner 临时 debug 密钥签的（证书 `CN=Android Debug`，
+   私钥随 runner 销毁，找不回来）；1.0.2 起改用固定密钥 `D:/Harrison/keystores/openapk-tv/openapk-tv.jks`
+   （`CN=OpenAPK TV`，SHA-256 `b1c54698…`），CI 从 secrets `KEYSTORE_B64` 还原并用 apksigner 核对指纹。由此：
+   ① 从 1.0.1 升级必须**先卸载**（直接装报 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`），1.0.2 及之后互相覆盖正常；
+   ② 这把 key 丢了就再也发不出能覆盖安装的包，等于让所有用户重装一次，所以本地要留备份、别删；
+   ③ 不要用 debug key 发版，也不要为了省事换 key（换 key = 断更一次）。
 
 ---
 

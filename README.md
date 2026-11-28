@@ -22,6 +22,8 @@ adb install -r openapk-tv-1.0.3.apk
 
 The package is not marked `testOnly`, so a USB stick or a file manager on the TV installs it as is. Every release page carries the SHA256.
 
+Coming from 1.0.1 or earlier? Uninstall the old version first — those builds were signed with a throwaway CI debug key, so Android refuses the update with a signature mismatch. From 1.0.2 on, releases share one fixed signing key and overwrite each other normally.
+
 ## What it does
 
 - Lists about 2,900 Android TV apps from GitHub across 18 categories
